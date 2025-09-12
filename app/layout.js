@@ -1,5 +1,5 @@
 export const metadata = {
-  title: "Erick — Portfolio",
+  title: "Portfolio Erick",
   description: "Projects, design, and links."
   openGraph: { title: "Portfolio Erick", description: "Projects, design, and links.", images: ["images/picUser.jpeg"] }
 };
