@@ -1,6 +1,13 @@
 'use client';
 import { useEffect, useRef } from "react";
 
+/**
+ * NumericRail
+ * - Scroll in the right rail => numbers progressively pack into a tidy grid
+ *   starting at top-left (row-major order).
+ * - Idle => slowly unpacks back to chaos.
+ * - Hover => gentle repel around cursor (3px push).
+ */
 export default function NumericRail({ scrollTargetId }) {
   const wrapRef = useRef(null);
   const canvasRef = useRef(null);
@@ -13,38 +20,75 @@ export default function NumericRail({ scrollTargetId }) {
     let w = wrap.clientWidth, h = wrap.clientHeight;
     c.width = w; c.height = h;
 
-    // density / crowd vibes
-    const COUNT = 180;
-    const dots = Array.from({ length: COUNT }, () => ({
+    // ---------- particles ----------
+    const COUNT = 200; // lebih rame dikit
+    const dots = Array.from({ length: COUNT }, (_, i) => ({
+      id: i,
       x: Math.random() * w,
       y: Math.random() * h,
-      v: 0.2 + Math.random() * 0.6,
+      v: 0.25 + Math.random() * 0.55,
       d: Math.random() * Math.PI * 2,
-      n: Math.floor(Math.random() * 10)
+      n: Math.floor(Math.random() * 10),
+      tx: null, ty: null // target (grid) saat "rapi"
     }));
 
-    // state for effects
+    // ---------- grid (tujuan rapi) ----------
+    let cellX = 22, cellY = 18, padding = 10;
+    let grid = [];
+    function rebuildGrid() {
+      grid = [];
+      const cols = Math.max(1, Math.floor((w - padding * 2) / cellX));
+      const rows = Math.max(1, Math.floor((h - padding * 2) / cellY));
+      // urut kiri->kanan, atas->bawah
+      for (let r = 0; r < rows; r++) {
+        for (let col = 0; col < cols; col++) {
+          grid.push({
+            x: padding + col * cellX,
+            y: padding + r * cellY
+          });
+        }
+      }
+    }
+    rebuildGrid();
+
+    // ---------- interaction state ----------
     let rafId;
-    let align = 0;        // actual align factor [0..1] (eases to target)
-    let alignTarget = 0;  // where we want to go (based on scroll)
-    let lastScrollTop = 0;
     let lastScrollAt = 0;
     let tiltX = 0, tiltY = 0;
     let hovered = false;
     let cursorX = 0, cursorY = 0;
 
-    // cursor “repel” settings
-    const REPEL_RADIUS = 80;       // area of influence
-    const REPEL_MAX_PUSH = 3;      // ~3px max dorong (sesuai request)
+    // seberapa banyak yang “dirapikan” (0..1)
+    let fillLevel = 0;            // target (naik saat scroll, turun saat idle)
+    let fillLevelActual = 0;      // eased value untuk animasi halus
+
+    // hover repel
+    const REPEL_R = 80;
+    const REPEL_PUSH = 3; // max ~3px
+
+    // assign target grid untuk N dots pertama
+    function assignTargets() {
+      // urut dot berdasarkan kedekatan ke pojok kiri-atas (x+y terkecil)
+      const sortedDots = [...dots].sort((a, b) => (a.x + a.y) - (b.x + b.y));
+      const N = Math.min(sortedDots.length, grid.length, Math.floor(fillLevelActual * sortedDots.length));
+      for (let i = 0; i < sortedDots.length; i++) {
+        const d = sortedDots[i];
+        if (i < N) {
+          const g = grid[i]; // cell ke-i (row-major dari kiri-atas)
+          d.tx = g.x;
+          d.ty = g.y;
+        } else {
+          d.tx = null; d.ty = null; // kembali bebas
+        }
+      }
+    }
 
     function draw() {
-      // decay align when no scroll for a while (smooth back to chaos)
-      if (Date.now() - lastScrollAt > 220) {
-        alignTarget *= 0.97; // ease down
-        if (alignTarget < 0.001) alignTarget = 0;
-      }
-      // ease current align → target
-      align += (alignTarget - align) * 0.15;
+      // ease fill level → target
+      fillLevelActual += (fillLevel - fillLevelActual) * 0.12;
+
+      // update target map ketika berubah banyak
+      assignTargets();
 
       ctx.clearRect(0, 0, w, h);
       ctx.fillStyle = "rgba(30,64,175,.35)";
@@ -53,52 +97,52 @@ export default function NumericRail({ scrollTargetId }) {
       ctx.font = '12px "Plus Jakarta Sans", system-ui, sans-serif';
 
       for (const o of dots) {
-        // drift like angin
-        o.x += Math.cos(o.d) * o.v + (Math.random() - 0.5) * 0.2;
-        o.y += Math.sin(o.d) * o.v + (Math.random() - 0.5) * 0.2;
-
-        // parallax tilt
-        o.x += tiltX * 0.08;
-        o.y += tiltY * 0.08;
-
-        // wrap edges
-        if (o.x < -10) o.x = w + 10; if (o.x > w + 10) o.x = -10;
-        if (o.y < -10) o.y = h + 10; if (o.y > h + 10) o.y = -10;
-
-        // tidy-up (snap to grid) — stronger when align↑
-        if (align > 0) {
-          const gx = Math.round(o.x / 22) * 22;
-          const gy = Math.round(o.y / 18) * 18;
-          const k = 0.18 * align; // 0.18 for crisp snap when high align
-          o.x += (gx - o.x) * k;
-          o.y += (gy - o.y) * k;
+        // if punya target -> gerak ke target (rapi), else -> drift
+        if (o.tx != null && o.ty != null) {
+          const k = 0.18 + fillLevelActual * 0.22; // makin kencang saat fill tinggi
+          o.x += (o.tx - o.x) * k;
+          o.y += (o.ty - o.y) * k;
+        } else {
+          // chaos drift
+          o.x += Math.cos(o.d) * o.v + (Math.random() - 0.5) * 0.2 + tiltX * 0.08;
+          o.y += Math.sin(o.d) * o.v + (Math.random() - 0.5) * 0.2 + tiltY * 0.08;
         }
 
-        // cursor repel: bikin angka-angka saling menjauh dari kursor
+        // repel (di kedua mode)
         if (hovered) {
           const dx = o.x - cursorX;
           const dy = o.y - cursorY;
-          const dist = Math.hypot(dx, dy) || 0.0001;
-          if (dist < REPEL_RADIUS) {
-            // push max ~3px at center, fade to 0 at edge
-            const push = ((REPEL_RADIUS - dist) / REPEL_RADIUS) * REPEL_MAX_PUSH;
+          const dist = Math.hypot(dx, dy) || 1e-6;
+          if (dist < REPEL_R) {
+            const push = ((REPEL_R - dist) / REPEL_R) * REPEL_PUSH;
             o.x += (dx / dist) * push;
             o.y += (dy / dist) * push;
           }
         }
 
+        // wrap
+        if (o.x < -10) o.x = w + 10; if (o.x > w + 10) o.x = -10;
+        if (o.y < -10) o.y = h + 10; if (o.y > h + 10) o.y = -10;
+
         ctx.globalAlpha = 0.60;
         ctx.fillText(String(o.n), o.x, o.y);
       }
+
+      // kalau idle > 250ms, turunkan fill pelan (lepas rapi → buyar)
+      if (Date.now() - lastScrollAt > 250) {
+        fillLevel = Math.max(0, fillLevel * 0.97);
+      }
+
       rafId = requestAnimationFrame(draw);
     }
 
+    // ---------- listeners ----------
     const onResize = () => {
       w = wrap.clientWidth; h = wrap.clientHeight;
       c.width = w; c.height = h;
+      rebuildGrid();
     };
 
-    // mouse tilt + hover state
     const onMouseMove = (e) => {
       const r = wrap.getBoundingClientRect();
       const mx = (e.clientX - r.left) / r.width - 0.5;
@@ -111,27 +155,14 @@ export default function NumericRail({ scrollTargetId }) {
     const onEnter = () => { hovered = true; };
     const onLeave = () => { hovered = false; };
 
-    // listen scroll dari panel kiri → semakin scroll, semakin rapi
+    // scroll di panel kanan: tingkatkan fillLevel (packing dari kiri-atas)
     const scroller = scrollTargetId ? document.getElementById(scrollTargetId) : window;
-    const onScroll = () => {
-      const st = (scroller === window) ? window.scrollY : scroller.scrollTop;
-      const dy = Math.abs(st - lastScrollTop);
-      lastScrollTop = st;
+    const bump = (strength = 0.25) => {
       lastScrollAt = Date.now();
-
-      // map velocity → alignTarget; clamp 0..1
-      // (dy ~0..400+) → ~0..1
-      const bump = Math.min(1, dy / 300);
-      // ease-up quickly when scrolling, smooth overall
-      alignTarget = Math.min(1, alignTarget * 0.85 + bump * 0.35);
+      fillLevel = Math.min(1, fillLevel + strength); // tambah isi grid
     };
-
-    // wheel di rail: jangan scroll page, cuma trigger “rapihin”
-    const onWheel = (e) => {
-      e.preventDefault();
-      lastScrollAt = Date.now();
-      alignTarget = Math.min(1, alignTarget * 0.85 + 0.35);
-    };
+    const onScroll = () => bump(0.18);
+    const onWheel = (e) => { e.preventDefault(); bump(0.25); }; // lock page scroll di rail
 
     wrap.addEventListener("mouseenter", onEnter);
     wrap.addEventListener("mouseleave", onLeave);
