@@ -1,11 +1,24 @@
 :root{
+  --bg:#f2f5fb;
   --ink:#0b1320; --muted:#5b6b82; --line:#e9eef5; --ring:#e5e7eb; --card:#fff;
   --rail-w:clamp(320px,33vw,520px);
 }
 
+/* Dark theme tokens */
+[data-theme="dark"]{
+  --bg:#0b1320;
+  --ink:#e5e7eb; --muted:#94a3b8; --line:#1f2937; --ring:#334155; --card:#0f172a;
+}
+
+/* base */
 *{ box-sizing:border-box }
-html,body{ margin:0; background:#f2f5fb; color:var(--ink);
-  font-family:"Plus Jakarta Sans",ui-sans-serif,system-ui }
+html,body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:"Plus Jakarta Sans",ui-sans-serif,system-ui;
+  transition: background-color .35s ease, color .35s ease;
+}
 
 @media (min-width:980px){
   html,body{ height:100%; overflow:hidden; overscroll-behavior:none }
@@ -14,9 +27,16 @@ html,body{ margin:0; background:#f2f5fb; color:var(--ink);
 /* SHELL */
 .layout{ width:calc(100vw - var(--rail-w)); height:100vh; }
 .left{ height:100%; overflow-y:auto; background:#fff; border-right:1px solid var(--line) }
-.right{ position:fixed; top:0; right:0; width:var(--rail-w); height:100vh;
+.right{
+  position:fixed; top:0; right:0; width:var(--rail-w); height:100vh;
   border-left:1px solid var(--line);
-  background:linear-gradient(180deg,#eef3ff 0%,#eff3fe 70%); overflow:hidden }
+  background:linear-gradient(180deg,#eef3ff 0%,#eff3fe 70%);
+  overflow:hidden;
+}
+/* dark gradient untuk panel kanan */
+[data-theme="dark"] .right{
+  background:linear-gradient(180deg,#0f172a 0%, #111827 70%);
+}
 
 /* CONTENT */
 .container{ max-width:1100px; margin:0 auto; padding:56px 28px }
@@ -24,8 +44,28 @@ html,body{ margin:0; background:#f2f5fb; color:var(--ink);
 .tagline{ margin:0 0 20px; color:var(--muted); font-size:18px }
 .cta{ display:flex; gap:10px; margin-bottom:28px }
 
-.btn{ display:inline-block; border-radius:12px; border:1px solid var(--ink); padding:10px 14px; text-decoration:none;
-  transition:transform .15s, box-shadow .15s, background .15s, color .15s }
+/* topbar toggle */
+.left{ position:relative; }
+.topbar{
+  position:sticky; top:12px; display:flex; justify-content:flex-end;
+  margin-bottom:8px;
+}
+
+/* toggle button */
+.theme-toggle{
+  display:inline-flex; align-items:center; justify-content:center;
+  width:40px; height:40px; border-radius:999px;
+  border:1px solid var(--ring); background:var(--card);
+  box-shadow:0 8px 24px rgba(16,24,40,.10);
+  cursor:pointer; transition: transform .2s ease, background .2s ease, border-color .2s ease;
+}
+.theme-toggle:hover{ transform: translateY(-1px) scale(1.03); }
+.theme-toggle .emoji{ font-size:20px; line-height:1; transition: transform .35s ease; }
+[data-theme="dark"] .theme-toggle .emoji{ transform: rotate(-20deg) scale(1.05); }
+
+/* Buttons & cards (pakai tokens yang sudah ada) */
+.btn{ display:inline-block; border-radius:12px; border:1px solid var(--ink); padding:10px 14px;
+  text-decoration:none; transition:transform .15s, box-shadow .15s, background .15s, color .15s }
 .btn:hover{ background:var(--ink); color:#fff; transform:translateY(-1px) }
 .btn--ghost{ border-color:var(--ring); color:var(--ink) }
 .btn--sm{ padding:8px 12px; font-size:13px }
@@ -41,7 +81,9 @@ html,body{ margin:0; background:#f2f5fb; color:var(--ink);
 .card-desc{ margin:0 0 12px; color:var(--muted) }
 .chips{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px }
 .chip{ font-size:12px; background:#f7f9ff; border:1px solid var(--ring); border-radius:999px; padding:5px 9px }
+[data-theme="dark"] .chip{ background:#111827; }
 
+/* Responsive */
 @media (max-width:979px){
   .layout{ width:100vw; height:auto }
   .right{ display:none }
