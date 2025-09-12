@@ -2,7 +2,7 @@ import { cv } from "../../data/cv";
 import PrintButton from "./PrintButton";
 
 export const metadata = {
-  title: `${cv.name} — CV`,
+  title: `${cv.name}' CV`,
   description: `${cv.name} · ${cv.role}`,
 };
 
@@ -24,7 +24,7 @@ export default function CVPage() {
         {/* Header */}
         <header style={{ display: "flex", gap: 16, alignItems: "center", marginBottom: 16 }}>
           <img
-            src="/images/picUser.jpeg"
+            src="public/images/picUser.jpeg"
             alt="Profile"
             width={84}
             height={84}
