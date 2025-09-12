@@ -23,7 +23,7 @@ export default function Home() {
                 reporting pipelines, data processing, and automation that actually ships.
               </p>
               <div className="cta">
-                <a href="/cv" className="btn btn--white-border">Lihat CV</a>
+                <a href="/cv" className="btn btn--ghost">Lihat CV</a>
                 <a href="mailto:erickchia2@gmail.com" className="btn btn--ghost">Email</a>
               </div>
             </header>
@@ -46,7 +46,7 @@ export default function Home() {
                       )}
 
                       {p.url && (
-                        <a href={p.url} target="_blank" rel="noreferrer" className="btn btn--white-border">
+                        <a href={p.url} target="_blank" rel="noreferrer" className="btn btn--ghost">
                           View
                         </a>
                       )}
