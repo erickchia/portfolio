@@ -6,107 +6,102 @@ import ThemeToggle from "./components/ThemeToggle";
 
 export default function Home() {
   return (
-    <main className="shell">
-      {/* Kolom kiri: konten utama, bisa scroll sendiri */}
-      <section className="content">
-        <header className="hero">
-          <h1>Erick</h1>
-          <ThemeToggle />
-          <p>
-            Finance & accounting analyst who turns manual chaos into streamlined
-            systems — reporting pipelines, data processing, and automation that
-            actually ships.
-          </p>
-          <div className="cta">
-            <a href="/cv" className="btn">Lihat CV</a>
-            <a href="mailto:erickchia2@gmail.com" className="btn btn--ghost">Email</a>
+    <>
+      <main className="layout">
+        <section className="left" id="left-scroll">
+          <div className="container">
+            <header className="hero">
+              <h1>Erick</h1>
+              <p className="tagline">
+                Finance & accounting analyst who turns manual chaos into streamlined systems —
+                reporting pipelines, data processing, and automation that actually ships.
+              </p>
+              <div className="cta">
+                <a href="/cv" className="btn">Lihat CV</a>
+                <a href="mailto:erickchia2@gmail.com" className="btn btn--ghost">Email</a>
+              </div>
+            </header>
+
+            <section>
+              <h2 className="section-title">Projects</h2>
+              <ul className="grid">
+                {projects.map((p, i) => (
+                  <li key={i} className="card">
+                    <article>
+                      <h3 className="card-title">{p.name}</h3>
+                      <p className="card-desc">{p.description}</p>
+
+                      {p.tags?.length > 0 && (
+                        <div className="chips">
+                          {p.tags.map((t) => (
+                            <span key={t} className="chip">{t}</span>
+                          ))}
+                        </div>
+                      )}
+
+                      {p.url && (
+                        <a
+                          href={p.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="btn btn--sm"
+                        >
+                          View
+                        </a>
+                      )}
+                    </article>
+                  </li>
+                ))}
+              </ul>
+            </section>
           </div>
-        </header>
-
-        <section>
-          <h2 className="section-title">Projects</h2>
-          <ul className="grid">
-            {projects.map((p, i) => (
-              <li key={i} className="card">
-                <article>
-                  <h3 className="card-title">{p.name}</h3>
-                  <p className="card-desc">{p.description}</p>
-                  {p.tags?.length > 0 && (
-                    <div className="chips">
-                      {p.tags.map((t) => (
-                        <span key={t} className="chip">{t}</span>
-                      ))}
-                    </div>
-                  )}
-                  {p.url && (
-                    <a
-                      href={p.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="btn btn--sm"
-                    >
-                      View
-                    </a>
-                  )}
-                </article>
-              </li>
-            ))}
-          </ul>
         </section>
-      </section>
+      </main>
 
-      {/* Kolom kanan: panel angka, sticky & full height */}
-      <aside className="railWrap">
-        <NumericRail />
+      {/* fixed right rail */}
+      <aside className="right">
+        <NumericRail scrollTargetId="left-scroll" />
       </aside>
 
+      {/* Styles */}
+      <style jsx global>{`
+        /* pastikan halaman global bisa scroll (tidak ke-lock) */
+        html, body { height: auto; overflow-y: auto; }
+        body { margin: 0; }
+      `}</style>
+
       <style jsx>{`
-        /* --- Grid dua kolom --- */
-        .shell {
-          display: grid;
-          grid-template-columns: minmax(0, 1fr) minmax(280px, 33vw);
-          gap: 24px;
-          align-items: start;
+        /* ----- Layout dua kolom ----- */
+        .layout {
+          max-width: 1100px;
+          margin: 0 auto;
           padding: 24px 20px 40px;
+          /* sisakan ruang di kanan untuk panel angka fixed */
+          margin-right: clamp(280px, 33vw, 420px);
         }
-
-        /* Konten kiri bisa scroll; halaman global TIDAK di-lock */
-        .content {
+        .left {
           min-height: 100vh;
-          overflow-y: auto;
-          padding-right: 8px; /* sedikit ruang, biar scrollbar tidak nabrak */
+          overflow-y: auto;       /* konten kiri bisa scroll */
+          padding-right: 8px;     /* agar scrollbar tidak menutupi konten */
         }
 
-        /* Pastikan global scroll aktif */
-        :global(html), :global(body) {
-          height: auto;
-          overflow-y: auto;
-        }
-
-        /* Panel angka kanan selalu terlihat, tidak ikut scroll body */
-        .railWrap {
-          position: sticky;
+        /* Panel angka fixed di kanan */
+        .right {
+          position: fixed;
           top: 0;
-          height: 100vh;
-          overflow: hidden; /* kanvas angka urusannya sendiri */
-          border-left: 1px solid rgba(2, 6, 23, 0.06);
-        }
-
-        /* Theme toggle muncul di kanan heading */
-        .hero {
-          position: relative;
-          padding-right: 56px;
-        }
-        :global(.theme-toggle) {
-          position: absolute;
           right: 0;
-          top: 0;
-          z-index: 5;
+          width: clamp(280px, 33vw, 420px);
+          height: 100vh;
+          border-left: 1px solid rgba(2,6,23,0.06);
+          background: transparent;  /* NumericRail yang menggambar */
+          overflow: hidden;
+          z-index: 10;
         }
 
-        /* Typo & UI */
+        /* ----- Typo & UI ----- */
+        .container { max-width: 980px; margin: 0 auto; }
         .hero h1 { font-size: 40px; line-height: 1.1; margin: 0 0 8px; }
-        .hero p  { margin: 0 0 16px; color: #475569; }
+        .tagline { margin: 0 0 16px; color: #475569; }
         .cta { display: flex; gap: 8px; margin-bottom: 24px; }
 
         .section-title { font-size: 18px; margin: 0 0 12px; color: #0f172a; }
@@ -116,6 +111,7 @@ export default function Home() {
           display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
           gap: 16px;
         }
+
         .card {
           background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; padding: 16px;
           box-shadow: 0 1px 2px rgba(0,0,0,.05);
@@ -127,32 +123,35 @@ export default function Home() {
         }
         .card-title { margin: 0 0 6px; font-weight: 700; }
         .card-desc  { margin: 0 0 10px; color: #475569; }
+
         .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
         .chip  { font-size: 12px; background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 999px; padding: 4px 8px; }
 
-        .btn { display: inline-block; border-radius: 10px; border: 1px solid #0f172a; padding: 8px 12px;
-               text-decoration: none; transition: all .15s ease; color: inherit; }
+        .btn {
+          display: inline-block; border-radius: 10px; border: 1px solid #0f172a; padding: 8px 12px;
+          text-decoration: none; transition: all .15s ease; color: inherit;
+        }
         .btn:hover { background: #0f172a; color: #fff; }
         .btn--ghost { border-color: #e5e7eb; }
         .btn--sm { padding: 6px 10px; font-size: 13px; }
 
-        /* Dark mode polish */
+        /* ----- Dark mode polish ----- */
         @media (prefers-color-scheme: dark) {
           .section-title { color: #e5e7eb; }
-          .hero p, .card-desc { color: #94a3b8; }
+          .tagline, .card-desc { color: #94a3b8; }
           .card { background: #0f172a; border-color: #1f2937; }
           .chip { background: #111827; border-color: #1f2937; color: #e5e7eb; }
           .btn--ghost { border-color: #334155; color: #e5e7eb; }
-          .railWrap { border-left-color: rgba(148, 163, 184, .15); }
+          .right { border-left-color: rgba(148,163,184,.15); }
         }
 
-        /* Mobile: sembunyikan panel angka, biar fokus konten */
+        /* ----- Mobile: panel angka disembunyikan ----- */
         @media (max-width: 1024px) {
-          .shell { grid-template-columns: 1fr; }
-          .railWrap { display: none; }
-          .content { overflow-y: visible; }
+          .layout { margin-right: 0; }
+          .left { overflow-y: visible; }
+          .right { display: none; }
         }
       `}</style>
-    </main>
+    </>
   );
 }
