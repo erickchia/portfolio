@@ -2,8 +2,6 @@
 import { projects } from "../data/projects";
 import ThemeToggle from "./components/ThemeToggle";
 
-export const metadata = { title: "Portofolio Erick" };
-
 export default function Home() {
   return (
     <main className="container">
