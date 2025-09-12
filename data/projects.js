@@ -6,7 +6,7 @@ export const projects = [
      tags: ["Google App Script","Google Sheets","Warehouse","Customable"] 
   },
   { name: "Sales Monitoring", 
-     description: "Helps management widen their scopes by analyzing needed data by sales", 
+     description: "Turns Google Sheets into a real-time revenue cockpit. Consolidate orders from stores/marketplaces, enrich with price/discount/cost, and watch revenue, units, AOV, margin, and sell-through update live. Drill by date, channel, region, salesperson, SKU, or customer; compare new vs repeat, promo vs non-promo, and cohort retention. Built as a Google Apps Script web app with cached rollups, fast search, quick filters, forecasts, alerts, and one-click export. Delivers seconds-fast answers, cleaner reporting, and smarter decisions—scaling smoothly as products, channels, and teams grow.", 
      url: "https://script.google.com/macros/s/AKfycbz5Vd-9xEcZB1dMqvQb2AXtTOh6JOEFF3C9pfLfgSqYYWCrL9KmOQPFzz3Z9v3Ho549rA/exec", 
      tags: ["Google App Script","Google Sheets","Sales","Customable"] 
   },
