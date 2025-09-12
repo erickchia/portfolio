@@ -79,6 +79,19 @@ html,body{
 .btn:hover{ background:var(--ink); color:#fff; transform:translateY(-1px) }
 .btn--ghost{ border-color:var(--ring); color:var(--ink) }
 .btn--sm{ padding:8px 12px; font-size:13px }
+/* --- White-outline buttons (khusus Lihat CV & View) --- */
+.btn--white-border { border-color: var(--ink); }
+
+/* Dark mode: paksa benar-benar putih */
+[data-theme="dark"] .btn--white-border { border-color: #fff; }
+
+/* Hover tetap kebaca di dark mode */
+[data-theme="dark"] .btn--white-border:hover {
+  background: #fff;
+  color: #0b1320;
+  border-color: #fff;
+}
+
 
 /* Dark: tombol non-ghost (Lihat CV, View) dibuat filled gelap agar teks putih */
 [data-theme="dark"] .btn:not(.btn--ghost){
