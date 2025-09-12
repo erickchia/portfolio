@@ -1,19 +1,12 @@
 import { projects } from "../data/projects";
-
-/* generate a big digits wall (server-side) */
-function makeDigits(len = 24000) {
-  let out = "";
-  for (let i = 0; i < len; i++) out += Math.floor(Math.random() * 10);
-  return out;
-}
-const DIGITS = makeDigits();
+import NumericRail from "./components/NumericRail";
 
 export const metadata = { title: "Portofolio Erick" };
 
 export default function Home() {
   return (
     <main className="layout">
-      {/* LEFT — 2/3, white canvas */}
+      {/* LEFT — content (2/3) */}
       <section className="left">
         <div className="container">
           <header className="hero">
@@ -58,40 +51,35 @@ export default function Home() {
         </div>
       </section>
 
-      {/* RIGHT — 1/3, scrollable numeric “3D” rail */}
+      {/* RIGHT — interactive digits rail (1/3) */}
       <aside className="right">
-        <div className="rail">
-          <pre className="digits" aria-hidden="true">{DIGITS}</pre>
-        </div>
+        <NumericRail />
       </aside>
 
-      {/* ---- styles ---- */}
       <style>{`
-        /* font */
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
 
         :root{
           --ink:#0b1320; --muted:#5b6b82; --line:#e9eef5; --ring:#e5e7eb;
-          --card:#ffffff; --accent:#7c3aed;
+          --card:#ffffff;
         }
         html,body{margin:0;background:#f2f5fb;color:var(--ink);font-family:"Plus Jakarta Sans",ui-sans-serif,system-ui}
         *{box-sizing:border-box}
 
-        /* lock page scroll on desktop */
+        /* Lock page scroll on desktop; the rail scrolls instead */
         @media (min-width: 980px){
           html,body{overflow:hidden}
         }
 
-        /* layout: 2/3 + 1/3 */
+        /* layout */
         .layout{
           min-height:100vh;
           display:grid;
-          grid-template-columns:minmax(0,2fr) minmax(280px,1fr);
+          grid-template-columns:minmax(0,2fr) minmax(300px,1fr);
         }
         .left{background:#fff;border-right:1px solid var(--line)}
         .right{position:relative}
 
-        /* left content */
         .container{max-width:1100px;margin:0 auto;padding:56px 28px}
         .hero h1{font-size:56px;letter-spacing:-.02em;line-height:1.02;margin:0 0 10px;font-weight:800}
         .tagline{margin:0 0 20px;color:var(--muted);font-size:18px}
@@ -104,7 +92,6 @@ export default function Home() {
 
         .section-title{font-size:20px;margin:0 0 14px;font-weight:700}
 
-        /* cards */
         .grid{list-style:none;padding:0;margin:0;
               display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px}
         .card{
@@ -119,33 +106,6 @@ export default function Home() {
         .chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
         .chip{font-size:12px;background:#f7f9ff;border:1px solid var(--ring);border-radius:999px;padding:5px 9px}
 
-        /* numeric rail — own scroll, subtle 3D */
-        .rail{
-          height:100vh; overflow:auto; padding:40px 22px;
-          background:linear-gradient(180deg,#eef2fb 0%,#e7ecf7 100%);
-          border-left:1px solid var(--line);
-          perspective:900px; /* 3D context */
-        }
-        .digits{
-          margin:0;
-          white-space:pre-wrap; word-break:break-word;
-          font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-          font-size:12px; line-height:1.05; letter-spacing:.9px;
-          color:#95a2b9; opacity:.35;
-          transform: rotateY(-12deg) translateZ(0);  /* 3D tilt */
-          text-rendering:optimizeLegibility;
-        }
-        .rail::after{
-          content:""; position:sticky; left:0; right:0; bottom:0; top:0; display:block;
-          background:
-            linear-gradient(180deg, rgba(255,255,255,.8), transparent 18%, transparent 82%, rgba(255,255,255,.85)),
-            radial-gradient(900px 260px at 0% 8%, rgba(255,255,255,.85), transparent 60%),
-            radial-gradient(600px 480px at 100% 92%, rgba(255,255,255,.75), transparent 65%);
-          pointer-events:none;
-          mix-blend-mode:normal;
-        }
-
-        /* responsive: stack (unlock scroll automatically via media rule above) */
         @media (max-width: 979px){
           .layout{grid-template-columns:1fr}
           .right{display:none}
