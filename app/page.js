@@ -1,3 +1,5 @@
+'use client';
+
 import { projects } from "../data/projects";
 import NumericRail from "./components/NumericRail";
 
@@ -54,13 +56,11 @@ export default function Home() {
         <NumericRail />
       </aside>
 
-      {/* layout & component styles */}
       <style jsx>{`
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
         :root{ --ink:#0b1320; --muted:#5b6b82; --line:#e9eef5; --ring:#e5e7eb; --card:#ffffff; }
         html,body{ margin:0; background:#f2f5fb; color:var(--ink); font-family:"Plus Jakarta Sans",ui-sans-serif,system-ui }
 
-        /* desktop: full-viewport grid fixed */
         .layout{
           position:fixed; inset:0;
           display:grid; grid-template-columns:minmax(0,2fr) minmax(300px,1fr);
@@ -91,7 +91,6 @@ export default function Home() {
         .chips{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px }
         .chip{ font-size:12px; background:#f7f9ff; border:1px solid var(--ring); border-radius:999px; padding:5px 9px }
 
-        /* mobile: page normal */
         @media (max-width: 979px){
           .layout{ position:static; grid-template-columns:1fr }
           .right{ display:none }
@@ -99,7 +98,7 @@ export default function Home() {
         }
       `}</style>
 
-      {/* global scroll lock (must be global so kena <html>/<body>) */}
+      {/* lock global scroll on desktop */}
       <style jsx global>{`
         @media (min-width:980px){
           html, body { height:100% !important; overflow:hidden !important; overscroll-behavior:none !important; }
