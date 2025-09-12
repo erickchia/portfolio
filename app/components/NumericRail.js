@@ -2,11 +2,10 @@
 import { useEffect, useRef } from "react";
 
 /**
- * NumericRail
- * - Scroll in the right rail => numbers progressively pack into a tidy grid
- *   starting at top-left (row-major order).
- * - Idle => slowly unpacks back to chaos.
- * - Hover => gentle repel around cursor (3px push).
+ * Right rail numbers
+ * - Scroll/wheel: queue capture → lock 1 digit per frame ke grid mulai dari kiri-atas
+ * - Idle: release 1 digit per interval → balik berantakan
+ * - Hover: repel halus (±3px)
  */
 export default function NumericRail({ scrollTargetId }) {
   const wrapRef = useRef(null);
@@ -17,79 +16,91 @@ export default function NumericRail({ scrollTargetId }) {
     const c = canvasRef.current;
     const ctx = c.getContext("2d", { alpha: true });
 
+    // --- sizing ---
     let w = wrap.clientWidth, h = wrap.clientHeight;
     c.width = w; c.height = h;
 
-    // ---------- particles ----------
-    const COUNT = 200; // lebih rame dikit
-    const dots = Array.from({ length: COUNT }, (_, i) => ({
-      id: i,
+    // --- particles ---
+    const COUNT = 220;
+    const dots = Array.from({ length: COUNT }, () => ({
       x: Math.random() * w,
       y: Math.random() * h,
       v: 0.25 + Math.random() * 0.55,
       d: Math.random() * Math.PI * 2,
       n: Math.floor(Math.random() * 10),
-      tx: null, ty: null // target (grid) saat "rapi"
+      tx: null, ty: null,
+      lockedIndex: -1,
     }));
 
-    // ---------- grid (tujuan rapi) ----------
+    // --- grid (row-major from top-left) ---
     let cellX = 22, cellY = 18, padding = 10;
     let grid = [];
     function rebuildGrid() {
       grid = [];
       const cols = Math.max(1, Math.floor((w - padding * 2) / cellX));
       const rows = Math.max(1, Math.floor((h - padding * 2) / cellY));
-      // urut kiri->kanan, atas->bawah
       for (let r = 0; r < rows; r++) {
         for (let col = 0; col < cols; col++) {
-          grid.push({
-            x: padding + col * cellX,
-            y: padding + r * cellY
-          });
+          grid.push({ x: padding + col * cellX, y: padding + r * cellY });
         }
       }
     }
     rebuildGrid();
 
-    // ---------- interaction state ----------
-    let rafId;
+    // --- interaction state ---
+    let rafId, prevTs = performance.now();
+    let hovered = false, cursorX = 0, cursorY = 0;
+    const REPEL_R = 80, REPEL_PUSH = 3;
+
+    // queue-based capture
+    let captured = 0;            // berapa yang sudah terkunci
+    let captureQueue = 0;        // antrian untuk ditangkap (naik saat scroll)
     let lastScrollAt = 0;
-    let tiltX = 0, tiltY = 0;
-    let hovered = false;
-    let cursorX = 0, cursorY = 0;
+    let releaseAccum = 0;        // timer untuk lepas satuan
 
-    // seberapa banyak yang “dirapikan” (0..1)
-    let fillLevel = 0;            // target (naik saat scroll, turun saat idle)
-    let fillLevelActual = 0;      // eased value untuk animasi halus
+    const CAPTURE_BURST = 12;    // nambah queue tiap event (speed)
+    const RELEASE_MS = 90;       // lepas 1 angka tiap X ms saat idle
 
-    // hover repel
-    const REPEL_R = 80;
-    const REPEL_PUSH = 3; // max ~3px
-
-    // assign target grid untuk N dots pertama
-    function assignTargets() {
-      // urut dot berdasarkan kedekatan ke pojok kiri-atas (x+y terkecil)
-      const sortedDots = [...dots].sort((a, b) => (a.x + a.y) - (b.x + b.y));
-      const N = Math.min(sortedDots.length, grid.length, Math.floor(fillLevelActual * sortedDots.length));
-      for (let i = 0; i < sortedDots.length; i++) {
-        const d = sortedDots[i];
+    function assignTargets(count) {
+      // sort by near top-left (x+y)
+      const sorted = [...dots].sort((a, b) => (a.x + a.y) - (b.x + b.y));
+      const N = Math.min(count, grid.length, dots.length);
+      // lock first N to grid[0..N-1], others free
+      for (let i = 0; i < sorted.length; i++) {
+        const d = sorted[i];
         if (i < N) {
-          const g = grid[i]; // cell ke-i (row-major dari kiri-atas)
-          d.tx = g.x;
-          d.ty = g.y;
+          const g = grid[i];
+          d.tx = g.x; d.ty = g.y; d.lockedIndex = i;
         } else {
-          d.tx = null; d.ty = null; // kembali bebas
+          d.tx = null; d.ty = null; d.lockedIndex = -1;
         }
       }
     }
 
-    function draw() {
-      // ease fill level → target
-      fillLevelActual += (fillLevel - fillLevelActual) * 0.12;
+    function tick(now) {
+      const dt = Math.min(40, now - prevTs); // ms
+      prevTs = now;
 
-      // update target map ketika berubah banyak
-      assignTargets();
+      // consume queue → 1 capture per frame (biar 1/1 tapi cepat)
+      if (captureQueue > 0 && captured < Math.min(grid.length, dots.length)) {
+        captured += 1;
+        captureQueue -= 1;
+        assignTargets(captured);
+      }
 
+      // release one-by-one when idle
+      if (Date.now() - lastScrollAt > 250 && captured > 0) {
+        releaseAccum += dt;
+        if (releaseAccum >= RELEASE_MS) {
+          releaseAccum = 0;
+          captured -= 1;
+          assignTargets(captured);
+        }
+      } else {
+        releaseAccum = 0;
+      }
+
+      // draw
       ctx.clearRect(0, 0, w, h);
       ctx.fillStyle = "rgba(30,64,175,.35)";
       ctx.textAlign = "center";
@@ -97,21 +108,21 @@ export default function NumericRail({ scrollTargetId }) {
       ctx.font = '12px "Plus Jakarta Sans", system-ui, sans-serif';
 
       for (const o of dots) {
-        // if punya target -> gerak ke target (rapi), else -> drift
-        if (o.tx != null && o.ty != null) {
-          const k = 0.18 + fillLevelActual * 0.22; // makin kencang saat fill tinggi
+        // move
+        if (o.tx != null) {
+          // fast snap toward grid
+          const k = 0.28; // kecepatan menuju slot
           o.x += (o.tx - o.x) * k;
           o.y += (o.ty - o.y) * k;
         } else {
-          // chaos drift
-          o.x += Math.cos(o.d) * o.v + (Math.random() - 0.5) * 0.2 + tiltX * 0.08;
-          o.y += Math.sin(o.d) * o.v + (Math.random() - 0.5) * 0.2 + tiltY * 0.08;
+          // free drift
+          o.x += Math.cos(o.d) * o.v + (Math.random() - 0.5) * 0.2;
+          o.y += Math.sin(o.d) * o.v + (Math.random() - 0.5) * 0.2;
         }
 
-        // repel (di kedua mode)
+        // hover repel (max ~3px)
         if (hovered) {
-          const dx = o.x - cursorX;
-          const dy = o.y - cursorY;
+          const dx = o.x - cursorX, dy = o.y - cursorY;
           const dist = Math.hypot(dx, dy) || 1e-6;
           if (dist < REPEL_R) {
             const push = ((REPEL_R - dist) / REPEL_R) * REPEL_PUSH;
@@ -128,56 +139,52 @@ export default function NumericRail({ scrollTargetId }) {
         ctx.fillText(String(o.n), o.x, o.y);
       }
 
-      // kalau idle > 250ms, turunkan fill pelan (lepas rapi → buyar)
-      if (Date.now() - lastScrollAt > 250) {
-        fillLevel = Math.max(0, fillLevel * 0.97);
-      }
-
-      rafId = requestAnimationFrame(draw);
+      rafId = requestAnimationFrame(tick);
     }
 
-    // ---------- listeners ----------
+    // listeners
     const onResize = () => {
       w = wrap.clientWidth; h = wrap.clientHeight;
       c.width = w; c.height = h;
       rebuildGrid();
+      assignTargets(captured); // remap ke grid baru
     };
 
-    const onMouseMove = (e) => {
+    const onMove = (e) => {
       const r = wrap.getBoundingClientRect();
-      const mx = (e.clientX - r.left) / r.width - 0.5;
-      const my = (e.clientY - r.top) / r.height - 0.5;
-      tiltX = mx * 2;
-      tiltY = my * 2;
       cursorX = e.clientX - r.left;
       cursorY = e.clientY - r.top;
     };
-    const onEnter = () => { hovered = true; };
-    const onLeave = () => { hovered = false; };
 
-    // scroll di panel kanan: tingkatkan fillLevel (packing dari kiri-atas)
-    const scroller = scrollTargetId ? document.getElementById(scrollTargetId) : window;
-    const bump = (strength = 0.25) => {
+    const bump = (burst = CAPTURE_BURST) => {
       lastScrollAt = Date.now();
-      fillLevel = Math.min(1, fillLevel + strength); // tambah isi grid
+      captureQueue = Math.min(
+        captureQueue + burst,
+        Math.min(grid.length, dots.length) - captured
+      );
     };
-    const onScroll = () => bump(0.18);
-    const onWheel = (e) => { e.preventDefault(); bump(0.25); }; // lock page scroll di rail
 
-    wrap.addEventListener("mouseenter", onEnter);
-    wrap.addEventListener("mouseleave", onLeave);
-    wrap.addEventListener("mousemove", onMouseMove);
-    wrap.addEventListener("wheel", onWheel, { passive: false });
+    // scroll isinya nambah queue (page scroll tetap jalan di container utama)
+    const scroller = scrollTargetId ? document.getElementById(scrollTargetId) : window;
+    const onScroll = () => bump(CAPTURE_BURST);
+    const onWheel = (e) => { // kalau mau hard-lock page scroll, uncomment preventDefault:
+      // e.preventDefault();
+      bump(CAPTURE_BURST);
+    };
+
+    wrap.addEventListener("mouseenter", () => (hovered = true));
+    wrap.addEventListener("mouseleave", () => (hovered = false));
+    wrap.addEventListener("mousemove", onMove);
+    wrap.addEventListener("wheel", onWheel, { passive: true });
     scroller.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onResize);
 
-    draw();
+    assignTargets(captured);
+    rafId = requestAnimationFrame(tick);
 
     return () => {
       cancelAnimationFrame(rafId);
-      wrap.removeEventListener("mouseenter", onEnter);
-      wrap.removeEventListener("mouseleave", onLeave);
-      wrap.removeEventListener("mousemove", onMouseMove);
+      wrap.removeEventListener("mousemove", onMove);
       wrap.removeEventListener("wheel", onWheel);
       scroller.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onResize);
@@ -188,7 +195,7 @@ export default function NumericRail({ scrollTargetId }) {
     <div ref={wrapRef} className="rail-wrap">
       <canvas ref={canvasRef} />
       <style jsx>{`
-        .rail-wrap{ position:absolute; inset:0; overflow:hidden; cursor:default }
+        .rail-wrap{ position:absolute; inset:0; overflow:hidden }
         canvas{ position:absolute; inset:0; width:100%; height:100% }
       `}</style>
     </div>
