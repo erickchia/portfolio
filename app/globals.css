@@ -2,12 +2,18 @@
   --bg:#f2f5fb;
   --ink:#0b1320; --muted:#5b6b82; --line:#e9eef5; --ring:#e5e7eb; --card:#fff;
   --rail-w:clamp(320px,33vw,520px);
+
+  /* warna angka panel kanan (dipakai NumericRail) */
+  --num-color: rgba(2, 6, 23, .28);
 }
 
 /* Dark theme tokens */
 [data-theme="dark"]{
   --bg:#0b1320;
   --ink:#e5e7eb; --muted:#94a3b8; --line:#1f2937; --ring:#334155; --card:#0f172a;
+
+  /* angka jadi terang saat dark */
+  --num-color: rgba(255,255,255,.30);
 }
 
 /* base */
@@ -26,7 +32,8 @@ html,body{
 
 /* SHELL */
 .layout{ width:calc(100vw - var(--rail-w)); height:100vh; }
-.left{ height:100%; overflow-y:auto; background:#fff; border-right:1px solid var(--line) }
+/* ikut tema: gunakan var(--card), bukan #fff */
+.left{ height:100%; overflow-y:auto; background:var(--card); border-right:1px solid var(--line) }
 .right{
   position:fixed; top:0; right:0; width:var(--rail-w); height:100vh;
   border-left:1px solid var(--line);
@@ -63,19 +70,41 @@ html,body{
 .theme-toggle .emoji{ font-size:20px; line-height:1; transition: transform .35s ease; }
 [data-theme="dark"] .theme-toggle .emoji{ transform: rotate(-20deg) scale(1.05); }
 
-/* Buttons & cards (pakai tokens yang sudah ada) */
-.btn{ display:inline-block; border-radius:12px; border:1px solid var(--ink); padding:10px 14px;
-  text-decoration:none; transition:transform .15s, box-shadow .15s, background .15s, color .15s }
+/* Buttons & cards */
+.btn{
+  display:inline-block; border-radius:12px; border:1px solid var(--ink); padding:10px 14px;
+  text-decoration:none; transition:transform .15s, box-shadow .15s, background .15s, color .15s;
+  color:var(--ink); background:transparent;
+}
 .btn:hover{ background:var(--ink); color:#fff; transform:translateY(-1px) }
 .btn--ghost{ border-color:var(--ring); color:var(--ink) }
 .btn--sm{ padding:8px 12px; font-size:13px }
 
+/* Dark: tombol non-ghost (Lihat CV, View) dibuat filled gelap agar teks putih */
+[data-theme="dark"] .btn:not(.btn--ghost){
+  background:#111827; border-color:#111827; color:#fff;
+}
+[data-theme="dark"] .btn:not(.btn--ghost):hover{
+  background:#0a0f1d; border-color:#0a0f1d; color:#fff;
+}
+/* Dark: ghost tetap kontras & readable */
+[data-theme="dark"] .btn--ghost{
+  border-color:#475569; color:#e5e7eb; background:transparent;
+}
+[data-theme="dark"] .btn--ghost:hover{
+  background:#e5e7eb; color:#0b1220; border-color:#e5e7eb;
+}
+
 .section-title{ font-size:20px; margin:0 0 14px; font-weight:700 }
-.grid{ list-style:none; padding:0; margin:0;
-  display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:18px }
-.card{ background:var(--card); border:1px solid var(--ring); border-radius:18px; padding:18px;
+.grid{
+  list-style:none; padding:0; margin:0;
+  display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:18px
+}
+.card{
+  background:var(--card); border:1px solid var(--ring); border-radius:18px; padding:18px;
   box-shadow:0 8px 24px rgba(16,24,40,.05);
-  transition:transform .18s, box-shadow .18s, border-color .18s; transform-origin:center }
+  transition:transform .18s, box-shadow .18s, border-color .18s; transform-origin:center
+}
 .card:hover{ transform:scale(1.025); box-shadow:0 18px 40px rgba(16,24,40,.12); border-color:#d7dbe3 }
 .card-title{ margin:0 0 6px; font-weight:700; font-size:18px }
 .card-desc{ margin:0 0 12px; color:var(--muted) }
