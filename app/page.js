@@ -69,6 +69,32 @@ export default function Home() {
         html, body { height: auto; overflow-y: auto; }
         body { margin: 0; }
       `}</style>
+        <style jsx global>{`
+  /* Tetap bisa scroll, tapi sembunyikan scrollbar */
+  html, body {
+    height: auto;
+    overflow-y: auto;
+    overflow-x: hidden;          /* cegah scrollbar horizontal */
+    -ms-overflow-style: none;    /* IE / Edge lama */
+    scrollbar-width: none;       /* Firefox */
+  }
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar {
+    width: 0;
+    height: 0;                   /* Chrome/Safari/Edge (WebKit) */
+  }
+
+  /* Kalau yang scroll elemen kiri (#left-scroll), sembunyikan juga */
+  #left-scroll {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  #left-scroll::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
+`}</style>
+
 
       <style jsx>{`
         /* ----- Layout dua kolom ----- */
@@ -151,6 +177,7 @@ export default function Home() {
           .left { overflow-y: visible; }
           .right { display: none; }
         }
+        
       `}</style>
     </>
   );
