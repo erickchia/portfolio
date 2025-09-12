@@ -1,163 +1,117 @@
-"use client";
-
+'use client';
 import { useEffect, useRef } from "react";
 
-export default function NumericRail() {
+export default function NumericRail({ scrollTargetId }) {
   const wrapRef = useRef(null);
   const canvasRef = useRef(null);
-  const rafRef = useRef(0);
-
-  // tuning
-  const DENSITY = 1200;         // smaller = more digits
-  const MAX_TILT_X = 6, MAX_TILT_Y = 10;
-  const LOCK_BP = 980;
-
-  const S = useRef({
-    particles: [], dpr: 1,
-    align: 0, alignTarget: 0, lastTop: 0, lastScrollAt: 0,
-    cols: 0, rows: 0, W: 0, H: 0,
-    tiltX: 0, tiltY: 0, tiltTX: 0, tiltTY: 0,
-  });
-
-  const rand = (a,b)=>a+Math.random()*(b-a);
-  const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
-  const lerp  = (a,b,t)=>a+(b-a)*t;
 
   useEffect(() => {
-    const rail = wrapRef.current, cvs = canvasRef.current;
-    if (!rail || !cvs) return;
-    const ctx = cvs.getContext("2d");
-    S.current.dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const wrap = wrapRef.current;
+    const c = canvasRef.current;
+    const ctx = c.getContext("2d", { alpha: true });
 
-    const seed = () => {
-      const { clientWidth: W, clientHeight: H } = rail;
-      S.current.W = W; S.current.H = H;
+    let w = wrap.clientWidth, h = wrap.clientHeight;
+    c.width = w; c.height = h;
 
-      cvs.width  = Math.floor(W * S.current.dpr);
-      cvs.height = Math.floor(H * S.current.dpr);
-      cvs.style.width = W + "px"; cvs.style.height = H + "px";
+    const COUNT = 180; // lebih rame dikit
+    const dots = Array.from({ length: COUNT }, () => ({
+      x: Math.random() * w,
+      y: Math.random() * h,
+      v: 0.2 + Math.random() * 0.6,
+      d: Math.random() * Math.PI * 2,
+      n: Math.floor(Math.random() * 10)
+    }));
 
-      const colW=14,rowH=16;
-      S.current.cols = Math.floor(W/colW);
-      S.current.rows = Math.floor(H/rowH);
+    let rafId;
+    let align = 0;           // 0..1  (1 = teratur)
+    let tiltX = 0, tiltY = 0;
 
-      const count = Math.floor((W*H)/DENSITY);
-      const parts=[];
-      for(let i=0;i<count;i++){
-        const x=rand(-20,W+20), y=rand(-20,H+20), d=Math.floor(Math.random()*10);
-        const gx=Math.floor(Math.random()*S.current.cols)*colW+colW*.5;
-        const gy=Math.floor(Math.random()*S.current.rows)*rowH+rowH*.65;
-        parts.push({x,y,vx:rand(-.2,.2),vy:rand(-.2,.2),d,gx,gy,w:rand(.8,1.4)});
+    function draw() {
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = "rgba(30,64,175,.35)";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.font = '12px "Plus Jakarta Sans", system-ui, sans-serif';
+
+      for (const o of dots) {
+        // drift angin
+        o.x += Math.cos(o.d) * o.v + (Math.random() - 0.5) * 0.2;
+        o.y += Math.sin(o.d) * o.v + (Math.random() - 0.5) * 0.2;
+
+        // parallax tilt
+        o.x += tiltX * 0.08;
+        o.y += tiltY * 0.08;
+
+        // wrap
+        if (o.x < -10) o.x = w + 10; if (o.x > w + 10) o.x = -10;
+        if (o.y < -10) o.y = h + 10; if (o.y > h + 10) o.y = -10;
+
+        // rapihin ke grid pas align > 0
+        if (align > 0) {
+          const gx = Math.round(o.x / 22) * 22;
+          const gy = Math.round(o.y / 18) * 18;
+          o.x += (gx - o.x) * 0.08 * align;
+          o.y += (gy - o.y) * 0.08 * align;
+        }
+
+        ctx.globalAlpha = 0.60;
+        ctx.fillText(String(o.n), o.x, o.y);
       }
-      S.current.particles=parts;
+      rafId = requestAnimationFrame(draw);
+    }
+
+    const onResize = () => {
+      w = wrap.clientWidth; h = wrap.clientHeight;
+      c.width = w; c.height = h;
     };
 
-    seed();
-    const ro=new ResizeObserver(seed); ro.observe(rail);
-
-    const onRailScroll=()=>{
-      const top=rail.scrollTop, delta=Math.abs(top-S.current.lastTop);
-      S.current.lastTop=top; S.current.lastScrollAt=performance.now();
-      S.current.alignTarget=clamp(S.current.alignTarget+Math.min(.35,delta/200),0,1);
+    // mouse tilt
+    const onMouseMove = (e) => {
+      const r = wrap.getBoundingClientRect();
+      const mx = (e.clientX - r.left) / r.width - 0.5;
+      const my = (e.clientY - r.top) / r.height - 0.5;
+      tiltX = mx * 2;
+      tiltY = my * 2;
     };
-    rail.addEventListener("scroll", onRailScroll, { passive:true });
 
-    // route wheel/keyboard to the rail (desktop)
-    const onWheel=(e)=>{
-      if(window.innerWidth>=LOCK_BP){ e.preventDefault(); rail.scrollTop += e.deltaY || 0; }
+    // scroll listener → dengerin LEMBAR KIRI
+    const scroller = scrollTargetId ? document.getElementById(scrollTargetId) : window;
+    const onScroll = () => {
+      align = 1;
+      clearTimeout(onScroll._t);
+      onScroll._t = setTimeout(() => { align = 0; }, 300);
     };
-    document.addEventListener("wheel", onWheel, { passive:false });
 
-    const onKey=(e)=>{
-      if(window.innerWidth<LOCK_BP) return;
-      const step=(e.key==="PageDown"||e.key==="PageUp")?rail.clientHeight*.9:80;
-      if(e.key==="ArrowDown"||e.key==="PageDown"||e.key===" "){ e.preventDefault(); rail.scrollTop+=step; }
-      else if(e.key==="ArrowUp"||e.key==="PageUp"){ e.preventDefault(); rail.scrollTop-=step; }
-      else if(e.key==="Home"){ e.preventDefault(); rail.scrollTop=0; }
-      else if(e.key==="End"){ e.preventDefault(); rail.scrollTop=rail.scrollHeight; }
+    // wheel di rail → jangan scroll page, cuma trigger rapihin
+    const onWheel = (e) => {
+      e.preventDefault();
+      align = 1;
+      clearTimeout(onWheel._t);
+      onWheel._t = setTimeout(() => { align = 0; }, 300);
     };
-    document.addEventListener("keydown", onKey);
 
-    // mouse parallax
-    const onMove=(e)=>{
-      const r=rail.getBoundingClientRect();
-      const nx=(e.clientX-r.left)/r.width-.5, ny=(e.clientY-r.top)/r.height-.5;
-      S.current.tiltTY = -nx*MAX_TILT_Y; S.current.tiltTX = ny*MAX_TILT_X;
+    wrap.addEventListener("mousemove", onMouseMove);
+    wrap.addEventListener("wheel", onWheel, { passive: false });
+    scroller.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onResize);
+
+    draw();
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      wrap.removeEventListener("mousemove", onMouseMove);
+      wrap.removeEventListener("wheel", onWheel);
+      scroller.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onResize);
     };
-    const onLeave=()=>{ S.current.tiltTX=0; S.current.tiltTY=0; };
-    rail.addEventListener("mousemove", onMove, { passive:true });
-    rail.addEventListener("mouseleave", onLeave);
-
-    const loop=()=>{
-      const { dpr,W,H,particles } = S.current;
-      const t=performance.now()*0.001;
-
-      if(performance.now()-S.current.lastScrollAt>350) S.current.alignTarget*=0.96;
-      S.current.align=lerp(S.current.align,S.current.alignTarget,0.08);
-
-      S.current.tiltX=lerp(S.current.tiltX,S.current.tiltTX,0.08);
-      S.current.tiltY=lerp(S.current.tiltY,S.current.tiltTY,0.08);
-      cvs.style.transform=`translateZ(0) rotateX(${S.current.tiltX}deg) rotateY(${S.current.tiltY}deg)`;
-
-      ctx.setTransform(dpr,0,0,dpr,0,0);
-      const g=ctx.createLinearGradient(0,0,0,H);
-      g.addColorStop(0,"#eef2fb"); g.addColorStop(1,"#e7ecf7");
-      ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
-
-      ctx.save();
-      ctx.font="12px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
-      ctx.fillStyle="rgba(149,162,185,0.40)";
-      const align=S.current.align;
-
-      for(const p of particles){
-        const windX=Math.sin((p.y*0.04)+t*0.9)*0.25 + Math.cos((p.x*0.03)-t*0.6)*0.15;
-        const windY=Math.cos((p.x*0.035)+t*0.7)*0.22;
-        p.vx += (1-align)*windX*0.08*p.w;
-        p.vy += (1-align)*windY*0.08*p.w;
-        p.vx += (p.gx-p.x)*(0.02*align);
-        p.vy += (p.gy-p.y)*(0.02*align);
-        p.vx*=0.96; p.vy*=0.96;
-        p.x+=p.vx; p.y+=p.vy;
-        if(p.x<-24) p.x+=W+48; if(p.x>W+24) p.x-=W+48;
-        if(p.y<-24) p.y+=H+48; if(p.y>H+24) p.y-=H+48;
-        ctx.fillText(p.d,p.x,p.y);
-      }
-      ctx.restore();
-
-      rafRef.current=requestAnimationFrame(loop);
-    };
-    rafRef.current=requestAnimationFrame(loop);
-
-    return ()=>{
-      ro.disconnect();
-      rail.removeEventListener("scroll", onRailScroll);
-      document.removeEventListener("wheel", onWheel);
-      document.removeEventListener("keydown", onKey);
-      rail.removeEventListener("mousemove", onMove);
-      rail.removeEventListener("mouseleave", onLeave);
-      cancelAnimationFrame(rafRef.current);
-    };
-  }, []);
+  }, [scrollTargetId]);
 
   return (
-    <div ref={wrapRef} className="rail">
-      <div style={{ height:"300vh" }} aria-hidden="true" />
-      <canvas ref={canvasRef} className="layer" />
+    <div ref={wrapRef} className="rail-wrap">
+      <canvas ref={canvasRef} />
       <style jsx>{`
-        .rail{
-          height:100vh; position:relative;
-          overflow-y:auto; overflow-x:hidden;              /* vertical only */
-          background:linear-gradient(180deg,#eef2fb 0%,#e7ecf7 100%);
-          border-left:1px solid #e9eef5; perspective:900px;
-          overscroll-behavior:contain;
-          /* hide scrollbar so gak keliatan seperti global */
-          scrollbar-width:none;
-        }
-        .rail::-webkit-scrollbar{ width:0; height:0; display:none; }
-        .layer{
-          position:absolute; inset:0; display:block;
-          will-change:transform; pointer-events:none;
-        }
+        .rail-wrap{ position:absolute; inset:0; overflow:hidden }
+        canvas{ position:absolute; inset:0; width:100%; height:100% }
       `}</style>
     </div>
   );
