@@ -29,13 +29,28 @@ function spiralOrder(cols, rows) {
   return cells;
 }
 
-export default function NumericRail() {
+/** ambil warna angka dari CSS variable --num-color */
+function getNumColorFromCSS() {
+  const val = getComputedStyle(document.documentElement)
+    .getPropertyValue("--num-color")
+    .trim();
+  return val || "rgba(2,6,23,.38)";
+}
+
+export default function NumericRail({ scrollTargetId }) {
   const canvasRef = useRef(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
     let dpr = Math.min(2, window.devicePixelRatio || 1);
+
+    // warna angka, ikut theme via CSS var
+    let numColor = getNumColorFromCSS();
+    const themeObs = new MutationObserver(() => {
+      numColor = getNumColorFromCSS();
+    });
+    themeObs.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
     // state simpen di closure
     let W = 0, H = 0;
@@ -44,15 +59,50 @@ export default function NumericRail() {
     let wantCaptured = 0;  // "energi" → berapa sel boleh dirapikan (float)
     let haveCaptured = 0;  // state smooth → berapa sel yg beneran lagi narik (float)
     let holdCaptured = 0;  // maksimum ring yg sudah tercapai (persist, gak turun)
-    let lastScrollY = window.scrollY;
+    let lastScrollY = 0;
     let lastMoveTs = performance.now();
     let raf;
     const mouse = { x: -9999, y: -9999, inside: false };
 
+    // dukung scroll target opsional (panel kiri) atau fallback window
+    let scrollEl = null;
+    let detachScroll = () => {};
+
+    function currentScrollY() {
+      if (!scrollEl) return 0;
+      // Window vs Element
+      return scrollEl === window ? window.scrollY : scrollEl.scrollTop;
+    }
+
+    function attachScrollTarget() {
+      // bersihin kalau ada sebelumnya
+      detachScroll();
+
+      if (scrollTargetId) {
+        const el = document.getElementById(scrollTargetId);
+        if (el) {
+          const handler = () => onScrollGeneric(el.scrollTop);
+          el.addEventListener("scroll", handler, { passive: true });
+          detachScroll = () => el.removeEventListener("scroll", handler);
+          scrollEl = el;
+          lastScrollY = el.scrollTop;
+          return;
+        }
+      }
+      // fallback window
+      const handler = () => onScrollGeneric(window.scrollY);
+      window.addEventListener("scroll", handler, { passive: true });
+      detachScroll = () => window.removeEventListener("scroll", handler);
+      scrollEl = window;
+      lastScrollY = window.scrollY;
+    }
+
     function setup() {
       const rect = canvas.parentElement.getBoundingClientRect();
-      W = Math.floor(rect.width);
-      H = Math.floor(rect.height);
+      const newW = Math.floor(rect.width);
+      const newH = Math.floor(rect.height);
+
+      W = newW; H = newH;
 
       canvas.width = W * dpr;
       canvas.height = H * dpr;
@@ -95,6 +145,8 @@ export default function NumericRail() {
     function resize() {
       dpr = Math.min(2, window.devicePixelRatio || 1);
       setup();
+      // pastikan masih pakai target scroll yang benar
+      attachScrollTarget();
     }
 
     // Energi dari wheel di kanvas (PC)
@@ -104,10 +156,10 @@ export default function NumericRail() {
       lastMoveTs = performance.now();
     }
 
-    // Energi dari scroll halaman (PC & mobile)
-    function onScroll() {
-      const dy = Math.abs(window.scrollY - lastScrollY);
-      lastScrollY = window.scrollY;
+    // Energi dari scroll generic (bisa window atau panel kiri)
+    function onScrollGeneric(yNow) {
+      const dy = Math.abs(yNow - lastScrollY);
+      lastScrollY = yNow;
       if (dy > 0) {
         wantCaptured += dy * GAIN_SCROLL;
         wantCaptured = Math.min(wantCaptured, targets.length);
@@ -137,11 +189,11 @@ export default function NumericRail() {
     }
 
     window.addEventListener("resize", resize);
-    window.addEventListener("scroll", onScroll, { passive: true });
     canvas.addEventListener("wheel", onWheel, { passive: true });
     canvas.addEventListener("mousemove", onMouseMove);
     canvas.addEventListener("mouseleave", onMouseLeave);
 
+    // pertama kali
     resize();
 
     function tick(t) {
@@ -158,7 +210,7 @@ export default function NumericRail() {
 
       ctx.clearRect(0, 0, W, H);
       ctx.font = "12px ui-sans-serif, system-ui, Inter, Roboto";
-      ctx.fillStyle = "rgba(2,6,23,.38)";
+      ctx.fillStyle = numColor; // <-- ikut CSS var / theme
 
       const Ncap = Math.min(targets.length, Math.max(holdCaptured, Math.floor(haveCaptured)));
 
@@ -210,15 +262,19 @@ export default function NumericRail() {
 
     raf = requestAnimationFrame(tick);
 
+    // attach scroll target setelah canvas terpasang
+    attachScrollTarget();
+
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", resize);
-      window.removeEventListener("scroll", onScroll);
       canvas.removeEventListener("wheel", onWheel);
       canvas.removeEventListener("mousemove", onMouseMove);
       canvas.removeEventListener("mouseleave", onMouseLeave);
+      detachScroll();
+      themeObs.disconnect();
     };
-  }, []);
+  }, [scrollTargetId]);
 
   return (
     <canvas
