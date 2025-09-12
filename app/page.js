@@ -3,8 +3,6 @@
 import { projects } from "../data/projects";
 import NumericRail from "./components/NumericRail";
 
-export const metadata = { title: "Portofolio Erick" };
-
 export default function Home() {
   return (
     <main className="layout">
