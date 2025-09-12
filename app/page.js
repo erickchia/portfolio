@@ -46,7 +46,12 @@ export default function Home() {
                       )}
 
                       {p.url && (
-                        <a href={p.url} target="_blank" rel="noreferrer" className="btn btn--ghost">
+                        <a
+                          href={p.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="btn btn--ghost"
+                        >
                           View
                         </a>
                       )}
@@ -63,6 +68,29 @@ export default function Home() {
       <aside className="right">
         <NumericRail scrollTargetId="left-scroll" />
       </aside>
+
+      {/* ===== Scroll lock khusus halaman ini + sembunyikan scrollbar ===== */}
+      <style jsx global>{`
+        /* Kunci halaman: tidak bisa scroll dokumen */
+        html, body {
+          height: 100vh !important;
+          overflow: hidden !important;
+          overscroll-behavior: none;
+        }
+        /* Sembunyikan track di semua browser */
+        html::-webkit-scrollbar,
+        body::-webkit-scrollbar { display: none; }
+        html, body { scrollbar-width: none; }
+
+        /* Jaga-jaga: kalau ada browser yang tetap render scrollbar pada .left */
+        .left::-webkit-scrollbar { display: none; }
+        .left { scrollbar-width: none; }
+      `}</style>
+
+      {/* Pastikan kolom kiri juga tidak punya scroll internal */}
+      <style jsx>{`
+        .left { overflow: hidden !important; }
+      `}</style>
     </>
   );
 }
