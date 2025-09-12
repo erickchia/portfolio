@@ -2,23 +2,17 @@
 
 import { useEffect, useRef } from "react";
 
-/** Interactive numeric rail
- *  - mouse wheel is hijacked to scroll only this rail (desktop)
- *  - digits drift like wind; while scrolling they align; stop => break apart again
- *  - subtle 3D mouse-parallax tilt
- */
 export default function NumericRail() {
   const wrapRef = useRef(null);
   const canvasRef = useRef(null);
   const rafRef = useRef(0);
 
-  // ——— tuning
-  const DENSITY = 1600;       // smaller = MORE digits (heavier)
-  const MAX_TILT_X = 6;       // deg (pitch)
-  const MAX_TILT_Y = 10;      // deg (yaw)
-  const LOCK_BP = 980;        // lock page scroll on >= this width
+  // tuning
+  const DENSITY = 1200;        // smaller = more digits
+  const MAX_TILT_X = 6;
+  const MAX_TILT_Y = 10;
+  const LOCK_BP = 980;
 
-  // sim state
   const S = useRef({
     particles: [],
     dpr: 1,
@@ -26,12 +20,8 @@ export default function NumericRail() {
     alignTarget: 0,
     lastTop: 0,
     lastScrollAt: 0,
-    cols: 0,
-    rows: 0,
-    W: 0, H: 0,
-    // parallax
-    tiltX: 0, tiltY: 0,
-    tiltTX: 0, tiltTY: 0,
+    cols: 0, rows: 0, W: 0, H: 0,
+    tiltX: 0, tiltY: 0, tiltTX: 0, tiltTY: 0,
   });
 
   const rand = (a, b) => a + Math.random() * (b - a);
@@ -42,7 +32,6 @@ export default function NumericRail() {
     const rail = wrapRef.current;
     const cvs  = canvasRef.current;
     if (!rail || !cvs) return;
-
     const ctx = cvs.getContext("2d");
     S.current.dpr = Math.min(window.devicePixelRatio || 1, 2);
 
@@ -55,12 +44,10 @@ export default function NumericRail() {
       cvs.style.width = W + "px";
       cvs.style.height = H + "px";
 
-      // grid targets (tidy mode)
       const colW = 14, rowH = 16;
       S.current.cols = Math.floor(W / colW);
       S.current.rows = Math.floor(H / rowH);
 
-      // particles by density
       const count = Math.floor((W * H) / DENSITY);
       const parts = [];
       for (let i = 0; i < count; i++) {
@@ -78,9 +65,8 @@ export default function NumericRail() {
     const ro = new ResizeObserver(seed);
     ro.observe(rail);
 
-    // ——— own scroll => increase align target
     const onRailScroll = () => {
-      const top   = rail.scrollTop;
+      const top = rail.scrollTop;
       const delta = Math.abs(top - S.current.lastTop);
       S.current.lastTop = top;
       S.current.lastScrollAt = performance.now();
@@ -88,19 +74,19 @@ export default function NumericRail() {
     };
     rail.addEventListener("scroll", onRailScroll, { passive: true });
 
-    // ——— global wheel -> force it to scroll the rail (desktop only)
+    // route wheel to rail (desktop)
     const onWheel = (e) => {
       if (window.innerWidth >= LOCK_BP) {
         e.preventDefault();
-        rail.scrollTop += e.deltaY;
+        rail.scrollTop += e.deltaY || e.deltaX || 0;
       }
     };
     document.addEventListener("wheel", onWheel, { passive: false });
 
-    // keyboard fallback (↑/↓/PgUp/PgDn/Space)
+    // keyboard scroll to rail
     const onKey = (e) => {
       if (window.innerWidth < LOCK_BP) return;
-      const step = e.key === "PageDown" || e.key === "PageUp" ? rail.clientHeight * 0.9 : 80;
+      const step = (e.key === "PageDown" || e.key === "PageUp") ? rail.clientHeight * 0.9 : 80;
       if (e.key === "ArrowDown" || e.key === "PageDown" || e.key === " ") {
         e.preventDefault(); rail.scrollTop += step;
       } else if (e.key === "ArrowUp" || e.key === "PageUp") {
@@ -110,7 +96,7 @@ export default function NumericRail() {
     };
     document.addEventListener("keydown", onKey);
 
-    // mouse parallax on rail
+    // parallax
     const onMove = (e) => {
       const r = rail.getBoundingClientRect();
       const nx = (e.clientX - r.left) / r.width - 0.5;
@@ -122,22 +108,18 @@ export default function NumericRail() {
     rail.addEventListener("mousemove", onMove, { passive: true });
     rail.addEventListener("mouseleave", onLeave);
 
-    // ——— animation
     const loop = () => {
       const { dpr, W, H, particles } = S.current;
       const t = performance.now() * 0.001;
 
-      // decay align when idle
       if (performance.now() - S.current.lastScrollAt > 350) S.current.alignTarget *= 0.96;
       S.current.align = lerp(S.current.align, S.current.alignTarget, 0.08);
 
-      // ease tilt
       S.current.tiltX = lerp(S.current.tiltX, S.current.tiltTX, 0.08);
       S.current.tiltY = lerp(S.current.tiltY, S.current.tiltTY, 0.08);
       cvs.style.transform = `translateZ(0) rotateX(${S.current.tiltX}deg) rotateY(${S.current.tiltY}deg)`;
 
-      // bg
-      const ctx = canvasRef.current.getContext("2d");
+      const ctx = cvs.getContext("2d");
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       const g = ctx.createLinearGradient(0, 0, 0, H);
       g.addColorStop(0, "#eef2fb"); g.addColorStop(1, "#e7ecf7");
@@ -146,27 +128,18 @@ export default function NumericRail() {
       ctx.save();
       ctx.font = "12px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
       ctx.fillStyle = "rgba(149,162,185,0.40)";
-
       const align = S.current.align;
+
       for (let p of particles) {
-        // wind (weaker as align rises)
         const windX = Math.sin((p.y * 0.04) + t * 0.9) * 0.25 + Math.cos((p.x * 0.03) - t * 0.6) * 0.15;
         const windY = Math.cos((p.x * 0.035) + t * 0.7) * 0.22;
-
         p.vx += (1 - align) * windX * 0.08 * p.w;
         p.vy += (1 - align) * windY * 0.08 * p.w;
-
-        // attract to grid when aligning
         p.vx += (p.gx - p.x) * (0.02 * align);
         p.vy += (p.gy - p.y) * (0.02 * align);
-
-        // friction
         p.vx *= 0.96; p.vy *= 0.96;
-
-        // integrate
         p.x += p.vx; p.y += p.vy;
 
-        // wrap
         if (p.x < -24) p.x += W + 48;
         if (p.x > W + 24) p.x -= W + 48;
         if (p.y < -24) p.y += H + 48;
@@ -193,20 +166,19 @@ export default function NumericRail() {
 
   return (
     <div ref={wrapRef} className="rail">
-      {/* spacer -> lets the rail have its own scroll distance */}
       <div style={{ height: "300vh" }} aria-hidden="true" />
       <canvas ref={canvasRef} className="layer" />
       <style jsx>{`
         .rail{
-          height:100vh; overflow:auto; position:relative;
+          height:100vh; position:relative;
+          overflow-y:auto; overflow-x:hidden;      /* <- vertical only */
           background:linear-gradient(180deg,#eef2fb 0%,#e7ecf7 100%);
           border-left:1px solid #e9eef5;
           perspective:900px;
         }
         .layer{
           position:absolute; inset:0; display:block;
-          will-change:transform;
-          pointer-events:none;
+          will-change:transform; pointer-events:none;
         }
       `}</style>
     </div>
