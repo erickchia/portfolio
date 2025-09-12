@@ -60,25 +60,24 @@ export default function Home() {
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
 
         :root{
-          --ink:#0b1320; --muted:#5b6b82; --line:#e9eef5; --ring:#e5e7eb;
-          --card:#ffffff;
+          --ink:#0b1320; --muted:#5b6b82; --line:#e9eef5; --ring:#e5e7eb; --card:#ffffff;
         }
         html,body{margin:0;background:#f2f5fb;color:var(--ink);font-family:"Plus Jakarta Sans",ui-sans-serif,system-ui}
-        *{box-sizing:border-box}
 
-        /* Lock page scroll on desktop; the rail scrolls instead */
+        /* ===== HARD LOCK: page no-scroll (desktop) ===== */
         @media (min-width: 980px){
-          html,body{overflow:hidden}
+          html,body{height:100%; overflow:hidden;}
         }
 
-        /* layout */
+        /* Full-viewport grid fixed, biar page gak ikut geser */
         .layout{
-          min-height:100vh;
+          position:fixed; inset:0;          /* <-- kunci ke viewport */
           display:grid;
           grid-template-columns:minmax(0,2fr) minmax(300px,1fr);
+          min-height:100vh;
         }
-        .left{background:#fff;border-right:1px solid var(--line)}
-        .right{position:relative}
+        .left{background:#fff;border-right:1px solid var(--line);overflow:hidden;}
+        .right{position:relative;}
 
         .container{max-width:1100px;margin:0 auto;padding:56px 28px}
         .hero h1{font-size:56px;letter-spacing:-.02em;line-height:1.02;margin:0 0 10px;font-weight:800}
@@ -106,8 +105,9 @@ export default function Home() {
         .chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
         .chip{font-size:12px;background:#f7f9ff;border:1px solid var(--ring);border-radius:999px;padding:5px 9px}
 
+        /* mobile: page kembali normal (scroll bawaan) */
         @media (max-width: 979px){
-          .layout{grid-template-columns:1fr}
+          .layout{position:static; grid-template-columns:1fr}
           .right{display:none}
           .hero h1{font-size:42px}
         }
