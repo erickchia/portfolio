@@ -1,3 +1,4 @@
+"use client"; 
 import { projects } from "../data/projects";
 import ThemeToggle from "./components/ThemeToggle";
 
