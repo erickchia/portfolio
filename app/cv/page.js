@@ -5,7 +5,7 @@ import PrintButton from "./PrintButton";
 /* === Lightweight preview data (instant, CORS-safe) ===
    If you want to change the text, just edit the snippets below. */
 const companyLinks = {
-  "PT Intertama Trikencana Bersinar": "https://www.linkedin.com/company/pt-intertama-trikencana-bersinar/about/"
+  "PT Intertama Trikencana Bersinar": "https://www.linkedin.com/company/pt-intertama-trikencana-bersinar/about/",
   "PT Djaja Harapan": "https://www.linkedin.com/company/pt-djaja-harapan-m/?originalSubdomain=id",
   "PT Astra Honda Motor": "https://www.astra-honda.com/corporate",
   "PT Aneka Makmur Sejahtera": "https://www.dnb.com/business-directory/company-profiles.pt_aneka_makmur_sejahtera.195a5284519ba3d51900f02731ebfb03.html",
