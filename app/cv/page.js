@@ -3,8 +3,6 @@ import { cv } from "../../data/cv";
 import PrintButton from "./PrintButton";
 import avatar from './profile.jpg';
 
-/* === Lightweight preview data (instant, CORS-safe) ===
-   If you want to change the text, just edit the snippets below. */
 const companyLinks = {
   "PT Intertama Trikencana Bersinar": "https://www.linkedin.com/company/pt-intertama-trikencana-bersinar/about/",
   "PT Djaja Harapan": "https://www.linkedin.com/company/pt-djaja-harapan-m/?originalSubdomain=id",
