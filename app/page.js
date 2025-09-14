@@ -69,28 +69,29 @@ export default function Home() {
         <NumericRail scrollTargetId="left-scroll" />
       </aside>
 
-      {/* ===== Scroll lock khusus halaman ini + sembunyikan scrollbar ===== */}
-      <style jsx global>{`
-        /* Kunci halaman: tidak bisa scroll dokumen */
-        html, body {
-          height: 100vh !important;
-          overflow: hidden !important;
-          overscroll-behavior: none;
-        }
-        /* Sembunyikan track di semua browser */
-        html::-webkit-scrollbar,
-        body::-webkit-scrollbar { display: none; }
-        html, body { scrollbar-width: none; }
+{/* ===== Global: tetap tanpa scrollbar di dokumen ===== */}
+<style jsx global>{`
+  html, body {
+    height: 100%;
+    overflow: hidden;            /* outer page tidak scroll */
+    overscroll-behavior: none;
+  }
+  /* (opsional) sembunyikan scrollbar outer kalau ada */
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar { display: none; }
+  html, body { scrollbar-width: none; }
+`}</style>
 
-        /* Jaga-jaga: kalau ada browser yang tetap render scrollbar pada .left */
-        .left::-webkit-scrollbar { display: none; }
-        .left { scrollbar-width: none; }
-      `}</style>
+{/* ===== Kolom kiri: boleh scroll, scrollbar disembunyikan ===== */}
+<style jsx>{`
+  .left {
+    overflow-y: auto !important;          /* aktifkan lagi scroll di kolom kiri */
+    -webkit-overflow-scrolling: touch;    /* smooth di iOS */
+  }
+  .left::-webkit-scrollbar { width: 0; height: 0; }
+  .left { scrollbar-width: none; }
+`}</style>
 
-      {/* Pastikan kolom kiri juga tidak punya scroll internal */}
-      <style jsx>{`
-        .left { overflow: hidden !important; }
-      `}</style>
     </>
   );
 }
