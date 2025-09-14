@@ -30,9 +30,30 @@ export const cv = {
     { name: "English", level: "Professional (written & daily conversation)" }
   ],
   experience: [
+      {
+      company: "PT Raja Jeva Nisi (part of PT Intertama Trikencana Bersinar)",
+      location: "Bekasi",
+      role: "Accounting",
+      start: "Apr 2025",
+      end: "present",
+      bullets: [
+        "Closed books; posted accruals, deferrals, and FX revals with zero material errors.",
+        "Prepared full GL reconciliations (cash, AR/AP, inventory, fixed assets, payroll, taxes) and cleared aged items.",
+        "Produced daily analytical data and/or monthly P&L, BS, CF under [GAAP/IFRS], with variance notes for leadership.",
+        "Managed fixed-asset register: capitalization, depreciation schedules, disposals, and CIP tracking.",
+        "Daily cash positioning & bank recs; flagged liquidity risks and optimized payment timing.",
+        "Built and documented SOPs & internal controls (segregation of duties, approval matrices).",
+        "Performed risk-based reviews and tightened control gaps with customize automation and detailed warehouse system.",
+        "Maintained item masters, costing (FEFO/weighted avg), and price lists across locations.",
+        "Built rolling forecasts and budgets; tracked actuals vs plan with driver-based analysis.",
+        "Automated reports with Google Apps Script/Sheets (query, pivot, email/export to XLSX); saved hrs/month to generate warehouse data.",
+        "Integrated data from POS/marketplaces/APIs into a single source of truth; reduced manual entry by before 3 person down to just 1.",
+        "Presented monthly finance packs to management—clear, visual, action-oriented."
+      ]
+    },
     {
       company: "PT Digital Bearing Solusindo (part of PT Djaja Harapan)",
-      location: "Jakarta",
+      location: "Jakarta Pusat",
       role: "Finance, Accounting, & Tax Supervisor (Probation)",
       start: "Jan 2025",
       end: "Mar 2025",
