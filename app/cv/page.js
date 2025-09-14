@@ -2,6 +2,8 @@
 import { cv } from "../../data/cv";
 import PrintButton from "./PrintButton";
 
+/* === Lightweight preview data (instant, CORS-safe) ===
+   If you want to change the text, just edit the snippets below. */
 const companyLinks = {
   "PT Djaja Harapan": "https://www.linkedin.com/company/pt-djaja-harapan-m/?originalSubdomain=id",
   "PT Astra Honda Motor": "https://www.astra-honda.com/corporate",
@@ -9,10 +11,22 @@ const companyLinks = {
   "PD Murah Makmur": "https://www.semuabis.com/pd-murah-makmur-0857-7928-1198",
   "Fingerspot": "https://fingerspot.com/about-us",
 };
-function resolveCompanyLink(fullName = "") {
-  const n = fullName.toLowerCase();
+const companyPreview = {
+  "PT Djaja Harapan":
+    "PT Djaja Harapan adalah perusahaan distribusi/ritel di Indonesia. Informasi publik menggambarkan fokus pada pengadaan dan pemasaran berbagai produk kebutuhan.",
+  "PT Astra Honda Motor":
+    "PT Astra Honda Motor (AHM) adalah produsen sepeda motor Honda di Indonesia, perusahaan patungan Astra International dan Honda Motor Co., Ltd.",
+  "PT Aneka Makmur Sejahtera":
+    "PT Aneka Makmur Sejahtera disebut dalam direktori bisnis sebagai entitas perdagangan/pendukung distribusi dengan aktivitas komersial di Indonesia.",
+  "PD Murah Makmur":
+    "PD Murah Makmur merupakan usaha perdagangan yang melayani distribusi barang konsumen dengan jangkauan lokal/regional.",
+  "Fingerspot":
+    "Fingerspot adalah penyedia solusi absensi dan keamanan biometrik (fingerprint/RFID) untuk bisnis dan organisasi di Indonesia.",
+};
+function resolveCompany(fullText = "") {
+  const lower = fullText.toLowerCase();
   for (const key of Object.keys(companyLinks)) {
-    if (n.includes(key.toLowerCase())) return companyLinks[key];
+    if (lower.includes(key.toLowerCase())) return key;
   }
   return null;
 }
@@ -89,7 +103,10 @@ export default function CVPage() {
 
             <ol className="xp-tl">
               {cv.experience.map((e, i) => {
-                const link = resolveCompanyLink(e.company);
+                const key = resolveCompany(e.company);
+                const link = key ? companyLinks[key] : null;
+                const snippet = key ? companyPreview[key] : null;
+
                 return (
                   <li className="xp" key={i}>
                     <div className="xp-date">
@@ -100,17 +117,26 @@ export default function CVPage() {
                       <div className="xp-head">
                         <div className="xp-title">
                           <strong className="xp-role">{e.role}</strong>
-                          <div className="xp-company">{e.company}</div>
-                        </div>
-
-                        {/* Hover card with reference link */}
-                        {link && (
-                          <div className="company-card" role="dialog" aria-label={`About ${e.company}`}>
-                            <div className="cc-title">{e.company}</div>
-                            <div className="cc-meta">Reference profile & background</div>
-                            <a className="cc-link" href={link} target="_blank" rel="noreferrer">Open reference ↗</a>
+                          <div className="xp-company">
+                            {e.company}
+                            {/* Wikipedia-like preview card */}
+                            {link && (
+                              <div className="wiki-card" role="dialog" aria-label={`About ${e.company}`}>
+                                <div className="wiki-inner">
+                                  <div className="wiki-title">{e.company}</div>
+                                  {snippet ? (
+                                    <p className="wiki-snippet">{snippet}</p>
+                                  ) : (
+                                    <p className="wiki-snippet">Reference information for this company.</p>
+                                  )}
+                                  <a className="wiki-open" href={link} target="_blank" rel="noreferrer">
+                                    Open reference ↗
+                                  </a>
+                                </div>
+                              </div>
+                            )}
                           </div>
-                        )}
+                        </div>
                       </div>
 
                       {e.bullets?.length ? (
@@ -234,31 +260,39 @@ export default function CVPage() {
           }
           .xp-date { color: #64748b; font-size: 13px; line-height: 1.4; white-space: nowrap; }
 
-          .xp-head{ position: relative; display: inline-block; }
           .xp-title { margin-bottom: 6px; }
           .xp-role { display:block; font-weight: 900; font-size: 18px; }
-          .xp-company { color:#475569; }
+          .xp-company { position: relative; color:#475569; display:inline-block; }
 
-          /* Hover card untuk company */
-          .company-card{
-            --shadow: 0 20px 40px rgba(16,24,40,.12);
-            position: absolute; left: 0; top: calc(100% + 10px);
-            width: min(520px, 62ch);
-            background:#fff; border:1px solid #e5e7eb; border-radius:12px;
-            box-shadow: var(--shadow);
-            padding:12px 14px;
-            opacity:0; transform: translateY(6px); pointer-events:none;
-            transition: opacity .2s ease, transform .2s ease;
-            z-index: 5;
+          /* ===== Wikipedia-like preview ===== */
+          .wiki-card{
+            position:absolute;
+            left:0; top: calc(100% + 8px);
+            width:min(520px, 62ch);
+            background:#fff; border:1px solid #e5e7eb; border-radius:8px;
+            box-shadow:0 16px 36px rgba(16,24,40,.12);
+            opacity:0; transform: translateY(6px);
+            transition: opacity .18s ease, transform .18s ease;
+            pointer-events:none; z-index: 5;
           }
-          .xp-head:hover .company-card,
-          .xp-head:focus-within .company-card{ opacity:1; transform: translateY(0); pointer-events:auto; }
-          .cc-title{ font-weight:800; margin-bottom:2px; }
-          .cc-meta{ color:#64748b; font-size:12px; }
-          .cc-link{ display:inline-block; margin-top:6px; font-weight:600; text-decoration:none; color:#0b1220; }
-          .cc-link:hover{ text-decoration:underline; }
+          /* arrow notch */
+          .wiki-card::before{
+            content:""; position:absolute; top:-7px; left:14px;
+            width:12px; height:12px; background:#fff; border-left:1px solid #e5e7eb; border-top:1px solid #e5e7eb;
+            transform: rotate(45deg);
+          }
+          .wiki-inner{ padding:12px 14px; }
+          .wiki-title{ font-weight:800; margin:0 0 4px 0; }
+          .wiki-snippet{ margin:0; color:#334155; line-height:1.45; }
+          .wiki-open{
+            display:block; margin-top:8px; font-size:12px; color:#0b1220; text-decoration:none;
+          }
+          .wiki-open:hover{ text-decoration:underline; }
+          /* show on hover */
+          .xp-company:hover .wiki-card,
+          .xp-company:focus-within .wiki-card{ opacity:1; transform: translateY(0); pointer-events:auto; }
 
-          /* Tasks container (soft bg sama dgn badge) */
+          /* Tasks container (soft bg) */
           .xp-tasks{
             background:#f8fafc; border:1px solid #e5e7eb; border-radius:10px;
             padding:10px 12px; margin-top:6px; font-size: 0.95rem;
@@ -294,6 +328,7 @@ export default function CVPage() {
             .skills { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
             .chip { font-size: 11px; padding: 5px 9px; }
             .xp { grid-template-columns: 120px 1fr; }
+            .wiki-card{ width:min(88vw, 520px); }
           }
 
           .sec { margin: 0; font-size: 14px; font-weight: 800; letter-spacing: .02em; text-transform: uppercase; color: #334155; }
@@ -310,7 +345,7 @@ export default function CVPage() {
             .xp::before { background: #fff; border-color: #bbb; }
             .xp-tasks{ background:#f3f4f6; border-color:#d1d5db; }
             .xp-bullets li::before { border-color: #d1d5db; background: #f3f4f6; }
-            .company-card{ display: none !important; }
+            .wiki-card{ display:none !important; }
             @page { size: A4; margin: 0; }
           }
         `}</style>
