@@ -2,6 +2,11 @@
 import { cv } from "../../data/cv";
 import PrintButton from "./PrintButton";
 
+export const metadata = {
+  title: `${cv.name}'s CV`,
+  description: `${cv.name} · ${cv.role}`,
+};
+
 export default function CVPage() {
   return (
     <>
@@ -15,7 +20,7 @@ export default function CVPage() {
         <article
           className="cv"
           style={{
-            width: "210mm",               // default A4 width (print)
+            width: "260mm",
             minHeight: "297mm",
             background: "#fff",
             color: "#0b1220",
@@ -24,10 +29,18 @@ export default function CVPage() {
             borderRadius: 12,
           }}
         >
+          {/* Back button (sticky di kiri atas, hidden saat print) */}
+          <div className="print-hide back-wrap">
+            <a href="/" className="back-btn" aria-label="Back to portfolio">
+              <span className="emoji hi" aria-hidden>👋</span>
+              <span className="emoji back" aria-hidden>🔙</span>
+            </a>
+          </div>
+
           {/* Header */}
           <header style={{ display: "flex", gap: 16, alignItems: "center", marginBottom: 16 }}>
             <img
-              src="/images/picUser.jpeg"   // gunakan path public
+              src="../images/picUser.jpeg"
               alt="Profile"
               width={84}
               height={84}
@@ -60,22 +73,31 @@ export default function CVPage() {
             </aside>
           </section>
 
-          {/* Experience */}
+          {/* Experience (timeline + tanggal kolom kiri) */}
           <section style={{ marginTop: 14 }}>
             <h2 className="sec">Experience</h2>
-            <ul style={{ marginTop: 6, paddingLeft: 18 }}>
+
+            <ol className="xp-tl">
               {cv.experience.map((e, i) => (
-                <li key={i} style={{ marginBottom: 10 }}>
-                  <div style={{ fontWeight: 700 }}>
-                    {e.role} — {e.company}{" "}
-                    <span style={{ opacity: .6, fontWeight: 400 }}>({e.start}–{e.end})</span>
+                <li className="xp" key={i}>
+                  <div className="xp-date">
+                    <span>({e.start}–{e.end})</span>
                   </div>
-                  <ul style={{ margin: "6px 0 0 18px" }}>
-                    {e.bullets.map((b, bi) => <li key={bi} style={{ marginBottom: 4 }}>{b}</li>)}
-                  </ul>
+                  <div className="xp-body">
+                    <div className="xp-title">
+                      <strong>{e.role}</strong> — {e.company}
+                    </div>
+                    {e.bullets?.length ? (
+                      <ul className="xp-bullets">
+                        {e.bullets.map((b, bi) => (
+                          <li key={bi}>{b}</li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </div>
                 </li>
               ))}
-            </ul>
+            </ol>
           </section>
 
           {/* Projects */}
@@ -126,25 +148,37 @@ export default function CVPage() {
           </div>
         </article>
 
-        {/* Responsiveness khusus halaman ini */}
+        {/* Styles khusus halaman ini */}
         <style>{`
-          /* --- Lebarkan preview di desktop (print tetap 210mm) --- */
-          @media screen and (min-width: 1100px) {
-            .cv { width: min(1380px, 88vw); }
-          }
-          @media screen and (min-width: 1400px) {
-            .cv { width: min(1600px, 86vw); }
-          }
-          @media screen and (min-width: 1800px) {
-            .cv { width: min(1720px, 82vw); }
-          }
+          /* Lebarkan preview desktop (print tetap 210mm) */
+          @media screen and (min-width: 1100px) { .cv { width: min(1380px, 88vw); } }
+          @media screen and (min-width: 1400px) { .cv { width: min(1600px, 86vw); } }
+          @media screen and (min-width: 1800px) { .cv { width: min(1720px, 82vw); } }
 
-          /* Perbesar kolom SKILLS agar muat lebih banyak, kurangi whitespace */
+          /* Back button */
+          .back-wrap{ position: sticky; top: 0; z-index: 20; margin: -6px 0 6px -6px; }
+          .back-btn{
+            position: relative;
+            display:inline-flex; align-items:center; justify-content:center;
+            width:42px; height:42px; border-radius:12px;
+            border:1px solid #e5e7eb; background:#fff; color:#0b1220;
+            text-decoration:none; box-shadow:0 8px 24px rgba(16,24,40,.06);
+            transition: background .2s ease, border-color .2s ease, transform .2s ease;
+            overflow:hidden;
+          }
+          .back-btn:hover{ background:#0b1220; border-color:#0b1220; transform: translateY(-1px); }
+          .back-btn:focus-visible{ outline:2px solid #2563eb; outline-offset:2px; }
+          .back-btn .emoji{ position:absolute; font-size:20px; line-height:1; transition: opacity .3s ease, transform .3s ease; }
+          .back-btn .back{ opacity:0; transform: translateY(6px) scale(.9); }
+          .back-btn:hover .back{ opacity:1; transform: translateY(0) scale(1); }
+          .back-btn:hover .hi{ opacity:0; transform: translateY(-6px) scale(.9) rotate(-8deg); }
+
+          /* Perbesar kolom SKILLS di desktop */
           @media screen and (min-width: 1200px) {
             .split { grid-template-columns: 3fr 2fr !important; }
           }
 
-          /* Skills grid: lebih banyak kolom, tag tidak memanjang */
+          /* Skills grid */
           .skills {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
@@ -161,12 +195,32 @@ export default function CVPage() {
             white-space: nowrap;
           }
 
-          /* Mobile */
+          /* ===== Experience timeline ===== */
+          .xp-tl { list-style: none; margin: 8px 0 0 0; padding: 0; position: relative; }
+          .xp-tl::before {
+            content: ""; position: absolute; left: 14px; top: 4px; bottom: 4px; width: 2px; background: #e5e7eb;
+          }
+          .xp {
+            position: relative;
+            display: grid;
+            grid-template-columns: 160px 1fr; column-gap: 14px;
+            padding: 10px 0 16px 28px;
+          }
+          .xp::before {
+            content: ""; position: absolute; left: 8px; top: 16px;
+            width: 10px; height: 10px; border-radius: 50%;
+            background: #fff; border: 2px solid #94a3b8;
+          }
+          .xp-date { color: #64748b; font-size: 13px; line-height: 1.4; white-space: nowrap; }
+          .xp-title { font-weight: 700; }
+          .xp-bullets { margin: 6px 0 0 18px; }
+
           @media (max-width: 900px) {
             .split { grid-template-columns: 1fr !important; }
             .cv { width: 100% !important; padding: 16px; border-radius: 10px; }
             .skills { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
             .chip { font-size: 11px; padding: 5px 9px; }
+            .xp { grid-template-columns: 120px 1fr; }
           }
 
           .sec { margin: 0; font-size: 14px; font-weight: 800; letter-spacing: .02em; text-transform: uppercase; color: #334155; }
@@ -176,12 +230,11 @@ export default function CVPage() {
             body { background: white; }
             .print-hide { display: none !important; }
             .cv {
-              box-shadow: none !important;
-              border-radius: 0 !important;
-              width: 210mm !important;
-              min-height: 297mm;
-              padding: 18mm;
+              box-shadow: none !important; border-radius: 0 !important;
+              width: 210mm !important; min-height: 297mm; padding: 18mm;
             }
+            .xp-tl::before { background: #ddd; }
+            .xp::before { background: #fff; border-color: #bbb; }
             @page { size: A4; margin: 0; }
           }
         `}</style>
