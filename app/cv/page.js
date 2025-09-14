@@ -1,6 +1,7 @@
 'use client';
 import { cv } from "../../data/cv";
 import PrintButton from "./PrintButton";
+import avatar from './profile.jpg';
 
 /* === Lightweight preview data (instant, CORS-safe) ===
    If you want to change the text, just edit the snippets below. */
@@ -67,7 +68,7 @@ export default function CVPage() {
           {/* Header */}
           <header style={{ display: "flex", gap: 16, alignItems: "center", marginBottom: 16 }}>
             <img
-              src="profile.jpg"
+              src={avatar.src}
               alt="Profile"
               width={84}
               height={84}
@@ -351,6 +352,7 @@ export default function CVPage() {
             .wiki-card{ display:none !important; }
             @page { size: A4; margin: 0; }
           }
+            .print-hide{ display:none !important; }
         `}</style>
       </main>
     </>
