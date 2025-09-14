@@ -1,14 +1,14 @@
 // data/cv.js
 export const cv = {
   name: "Erick",
-  role: "Finance · Accounting · Tax | Automation-minded",
+  role: "Finance, Accounting & Tax",
   location: "Indonesia",
   email: "erickchia2@gmail.com",
   phone: "+62 822 5182 4928",
   linkedin: "https://linkedin.com/in/erickchia/",
   website: "", // add your Pages domain when ready
   summary:
-    "Bachelor of Finance Management with experience across auditing, admin & finance coordination, bookkeeping, and tax compliance. Detail-oriented, loves working with numbers, and prioritizes efficiency through iteration.",
+    "Bachelor of Finance Management with experience across auditing, admin & finance coordination, bookkeeping, and tax compliance. Detail-oriented, loves working with numbers, and prioritizes efficiency through iteration and automation.",
   skills: [
     "Bookkeeping & Closing",
     "Budgeting & Forecast",
@@ -16,7 +16,7 @@ export const cv = {
     "Tax (VAT, Sales Tax, PPh)",
     "AR/AP & Reconciliation",
     "Inventory Control",
-    "Google Apps Script (basic automation)",
+    "Google Apps Script",
     "Excel/Google Sheets",
     "Power BI (basic viz)",
     "Odoo ERP",
@@ -24,8 +24,6 @@ export const cv = {
     "Coretax & DJP",
     "Google Workspace",
     "Microsoft Office",
-    "Photoshop",
-    "CorelDraw"
   ],
   languages: [
     { name: "Bahasa Indonesia", level: "Native" },
