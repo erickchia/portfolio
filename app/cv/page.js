@@ -2,11 +2,6 @@
 import { cv } from "../../data/cv";
 import PrintButton from "./PrintButton";
 
-export const metadata = {
-  title: `${cv.name}'s CV`,
-  description: `${cv.name} · ${cv.role}`,
-};
-
 export default function CVPage() {
   return (
     <>
