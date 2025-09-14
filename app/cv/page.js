@@ -2,6 +2,21 @@
 import { cv } from "../../data/cv";
 import PrintButton from "./PrintButton";
 
+const companyLinks = {
+  "PT Djaja Harapan": "https://www.linkedin.com/company/pt-djaja-harapan-m/?originalSubdomain=id",
+  "PT Astra Honda Motor": "https://www.astra-honda.com/corporate",
+  "PT Aneka Makmur Sejahtera": "https://www.dnb.com/business-directory/company-profiles.pt_aneka_makmur_sejahtera.195a5284519ba3d51900f02731ebfb03.html",
+  "PD Murah Makmur": "https://www.semuabis.com/pd-murah-makmur-0857-7928-1198",
+  "Fingerspot": "https://fingerspot.com/about-us",
+};
+function resolveCompanyLink(fullName = "") {
+  const n = fullName.toLowerCase();
+  for (const key of Object.keys(companyLinks)) {
+    if (n.includes(key.toLowerCase())) return companyLinks[key];
+  }
+  return null;
+}
+
 export default function CVPage() {
   return (
     <>
@@ -73,26 +88,44 @@ export default function CVPage() {
             <h2 className="sec">Experience</h2>
 
             <ol className="xp-tl">
-              {cv.experience.map((e, i) => (
-                <li className="xp" key={i}>
-                  <div className="xp-date">
-                    <span>({e.start}–{e.end})</span>
-                  </div>
-                  <div className="xp-body">
-                    <div className="xp-title">
-                      <strong className="xp-role">{e.role}</strong>
-                      <div className="xp-company">{e.company}</div>
+              {cv.experience.map((e, i) => {
+                const link = resolveCompanyLink(e.company);
+                return (
+                  <li className="xp" key={i}>
+                    <div className="xp-date">
+                      <span>({e.start}–{e.end})</span>
                     </div>
-                    {e.bullets?.length ? (
-                      <ul className="xp-bullets">
-                        {e.bullets.map((b, bi) => (
-                          <li key={bi}>{b}</li>
-                        ))}
-                      </ul>
-                    ) : null}
-                  </div>
-                </li>
-              ))}
+
+                    <div className="xp-body">
+                      <div className="xp-head">
+                        <div className="xp-title">
+                          <strong className="xp-role">{e.role}</strong>
+                          <div className="xp-company">{e.company}</div>
+                        </div>
+
+                        {/* Hover card with reference link */}
+                        {link && (
+                          <div className="company-card" role="dialog" aria-label={`About ${e.company}`}>
+                            <div className="cc-title">{e.company}</div>
+                            <div className="cc-meta">Reference profile & background</div>
+                            <a className="cc-link" href={link} target="_blank" rel="noreferrer">Open reference ↗</a>
+                          </div>
+                        )}
+                      </div>
+
+                      {e.bullets?.length ? (
+                        <div className="xp-tasks">
+                          <ul className="xp-bullets">
+                            {e.bullets.map((b, bi) => (
+                              <li key={bi}>{b}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      ) : null}
+                    </div>
+                  </li>
+                );
+              })}
             </ol>
           </section>
 
@@ -120,9 +153,11 @@ export default function CVPage() {
           {cv.education?.length ? (
             <section style={{ marginTop: 14 }}>
               <h2 className="sec">Education</h2>
-              <ul style={{ marginTop: 6, paddingLeft: 18 }}>
+              <ul className="edu-list" style={{ marginTop: 6, paddingLeft: 18 }}>
                 {cv.education.map((ed, i) => (
-                  <li key={i}>{ed.degree}, {ed.school} {ed.year ? `(${ed.year})` : ""}</li>
+                  <li key={i}>
+                    {ed.degree}, {ed.school} {ed.year ? `(${ed.year})` : ""}
+                  </li>
                 ))}
               </ul>
             </section>
@@ -199,12 +234,38 @@ export default function CVPage() {
           }
           .xp-date { color: #64748b; font-size: 13px; line-height: 1.4; white-space: nowrap; }
 
+          .xp-head{ position: relative; display: inline-block; }
           .xp-title { margin-bottom: 6px; }
-          .xp-role { display:block; font-weight: 800; }
+          .xp-role { display:block; font-weight: 900; font-size: 18px; }
           .xp-company { color:#475569; }
 
+          /* Hover card untuk company */
+          .company-card{
+            --shadow: 0 20px 40px rgba(16,24,40,.12);
+            position: absolute; left: 0; top: calc(100% + 10px);
+            width: min(520px, 62ch);
+            background:#fff; border:1px solid #e5e7eb; border-radius:12px;
+            box-shadow: var(--shadow);
+            padding:12px 14px;
+            opacity:0; transform: translateY(6px); pointer-events:none;
+            transition: opacity .2s ease, transform .2s ease;
+            z-index: 5;
+          }
+          .xp-head:hover .company-card,
+          .xp-head:focus-within .company-card{ opacity:1; transform: translateY(0); pointer-events:auto; }
+          .cc-title{ font-weight:800; margin-bottom:2px; }
+          .cc-meta{ color:#64748b; font-size:12px; }
+          .cc-link{ display:inline-block; margin-top:6px; font-weight:600; text-decoration:none; color:#0b1220; }
+          .cc-link:hover{ text-decoration:underline; }
+
+          /* Tasks container (soft bg sama dgn badge) */
+          .xp-tasks{
+            background:#f8fafc; border:1px solid #e5e7eb; border-radius:10px;
+            padding:10px 12px; margin-top:6px; font-size: 0.95rem;
+          }
+
           /* Bullets → emoji badge dgn pixel radius */
-          .xp-bullets { list-style: none; padding: 0; margin: 8px 0 0 0; }
+          .xp-bullets { list-style: none; padding: 0; margin: 0; }
           .xp-bullets li {
             position: relative; padding-left: 32px; margin-bottom: 6px;
           }
@@ -215,6 +276,16 @@ export default function CVPage() {
             display: inline-flex; align-items: center; justify-content: center;
             border: 1px solid #e5e7eb; background: #f8fafc; border-radius: 6px; /* pixel radius */
             font-size: 12px; line-height: 1;
+          }
+
+          /* Education bullets → 🎓 */
+          .edu-list{ list-style: none; padding-left: 0; }
+          .edu-list li{ position: relative; padding-left: 26px; margin-bottom: 6px; }
+          .edu-list li::before{
+            content: "🎓";
+            position: absolute; left: 0; top: 0;
+            width: 20px; height: 20px; display: inline-flex; align-items:center; justify-content:center;
+            border:1px solid #e5e7eb; background:#f8fafc; border-radius:6px; font-size:12px;
           }
 
           @media (max-width: 900px) {
@@ -237,9 +308,9 @@ export default function CVPage() {
             }
             .xp-tl::before { background: #ddd; }
             .xp::before { background: #fff; border-color: #bbb; }
-            .xp-bullets li::before {
-              border-color: #d1d5db; background: #f3f4f6;
-            }
+            .xp-tasks{ background:#f3f4f6; border-color:#d1d5db; }
+            .xp-bullets li::before { border-color: #d1d5db; background: #f3f4f6; }
+            .company-card{ display: none !important; }
             @page { size: A4; margin: 0; }
           }
         `}</style>
