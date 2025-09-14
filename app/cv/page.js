@@ -57,7 +57,7 @@ export default function CVPage() {
         >
           {/* Back button (sticky di kiri atas, hidden saat print) */}
           <div className="print-hide back-wrap">
-            <a href="/" className="back-" aria-label="Back to portfolio">
+            <a href="/" className="back-btn" aria-label="Back to portfolio">
               <span className="emoji hi" aria-hidden>👋</span>
               <span className="emoji back" aria-hidden>🔙</span>
             </a>
