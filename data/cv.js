@@ -12,7 +12,7 @@ export const cv = {
   skills: [
     "Bookkeeping & Closing",
     "Budgeting & Forecast",
-    "Audit (internal/external coordination)",
+    "Audit (internal coordination)",
     "Tax (VAT, Sales Tax, PPh)",
     "AR/AP & Reconciliation",
     "Inventory Control",
@@ -107,6 +107,8 @@ export const cv = {
       degree: "Bachelor of Finance Management",
       gpa: "3.27 / 4.00",
       graduation: "Oct 2023",
+      start: "Aug 2019",
+      end: "Feb 2023",
       coursework: [
         "Accounting",
         "Micro/Macro-economics",
