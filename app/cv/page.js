@@ -80,7 +80,8 @@ export default function CVPage() {
                   </div>
                   <div className="xp-body">
                     <div className="xp-title">
-                      <strong>{e.role}</strong> — {e.company}
+                      <strong className="xp-role">{e.role}</strong>
+                      <div className="xp-company">{e.company}</div>
                     </div>
                     {e.bullets?.length ? (
                       <ul className="xp-bullets">
@@ -169,32 +170,22 @@ export default function CVPage() {
           .back-btn:hover .hi{ opacity:0; transform: translateY(-6px) scale(.9) rotate(-8deg); }
 
           /* Perbesar kolom SKILLS di desktop */
-          @media screen and (min-width: 1200px) {
-            .split { grid-template-columns: 3fr 2fr !important; }
-          }
+          @media screen and (min-width: 1200px) { .split { grid-template-columns: 3fr 2fr !important; } }
 
           /* Skills grid */
           .skills {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 10px;
-            margin-top: 6px;
+            gap: 10px; margin-top: 6px;
           }
           .chip {
-            display: inline-block;
-            font-size: 12px;
-            padding: 6px 10px;
-            border: 1px solid #e5e7eb;
-            border-radius: 999px;
-            background: #f8fafc;
-            white-space: nowrap;
+            display: inline-block; font-size: 12px; padding: 6px 10px;
+            border: 1px solid #e5e7eb; border-radius: 999px; background: #f8fafc; white-space: nowrap;
           }
 
           /* ===== Experience timeline ===== */
           .xp-tl { list-style: none; margin: 8px 0 0 0; padding: 0; position: relative; }
-          .xp-tl::before {
-            content: ""; position: absolute; left: 14px; top: 4px; bottom: 4px; width: 2px; background: #e5e7eb;
-          }
+          .xp-tl::before { content: ""; position: absolute; left: 14px; top: 4px; bottom: 4px; width: 2px; background: #e5e7eb; }
           .xp {
             position: relative;
             display: grid;
@@ -207,8 +198,24 @@ export default function CVPage() {
             background: #fff; border: 2px solid #94a3b8;
           }
           .xp-date { color: #64748b; font-size: 13px; line-height: 1.4; white-space: nowrap; }
-          .xp-title { font-weight: 700; }
-          .xp-bullets { margin: 6px 0 0 18px; }
+
+          .xp-title { margin-bottom: 6px; }
+          .xp-role { display:block; font-weight: 800; }
+          .xp-company { color:#475569; }
+
+          /* Bullets → emoji badge dgn pixel radius */
+          .xp-bullets { list-style: none; padding: 0; margin: 8px 0 0 0; }
+          .xp-bullets li {
+            position: relative; padding-left: 32px; margin-bottom: 6px;
+          }
+          .xp-bullets li::before {
+            content: "🗒️";
+            position: absolute; left: 0; top: 1px;
+            width: 22px; height: 22px;
+            display: inline-flex; align-items: center; justify-content: center;
+            border: 1px solid #e5e7eb; background: #f8fafc; border-radius: 6px; /* pixel radius */
+            font-size: 12px; line-height: 1;
+          }
 
           @media (max-width: 900px) {
             .split { grid-template-columns: 1fr !important; }
@@ -230,6 +237,9 @@ export default function CVPage() {
             }
             .xp-tl::before { background: #ddd; }
             .xp::before { background: #fff; border-color: #bbb; }
+            .xp-bullets li::before {
+              border-color: #d1d5db; background: #f3f4f6;
+            }
             @page { size: A4; margin: 0; }
           }
         `}</style>
