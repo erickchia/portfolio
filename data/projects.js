@@ -2,7 +2,7 @@
 export const projects = [
   { name: "Warehouse Management System", 
      description: "Finished Goods dashboard turning Sheets into a real-time, single source of truth. Track stock across warehouses; see mix by products handle as CTN/PCK/KG. Built as a Google Apps Script web app with live rollups, search, quick filters, export and clear visuals. FEFO-ready structure. impacting seconds-fast answers, fewer picking errors, smarter planning, and auditable totals that scale as locations and SKUs grow.", 
-     url: "https://script.google.com/macros/s/AKfycbx9XSA0dP6ycj4qDJhIfDBrw0wo4iIcKr5r6zDzwhwn5lw-tAO8ogonm5SSk_uh2WDpbA/exec", 
+     url: "https://script.google.com/macros/s/AKfycbw-jYo0wb-7cCujgL877JLYv7p-d1CIe4CQOmQzqaYYWa08sDmvCD8RE9Agguy_rF8/exec", 
      tags: ["Google App Script","Google Sheets","Warehouse","Customable"] 
   },
   { name: "Sales Monitoring", 
