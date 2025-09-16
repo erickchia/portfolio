@@ -13,17 +13,17 @@ const companyLinks = {
 };
 const companyPreview = {
   "PT Intertama Trikencana Bersinar":
-    "PT Intertama Trikencana Bersinar adalah perusahaan manufaktur yang fokus pada peternakan unggas khususnya ayam, selain itu perusahaan ini fokus pada produksi maklon dan produksi makanan siap saji dan frozen food.",
+    "PT Intertama Trikencana Bersinar is an integrated manufacturer focused on poultry—primarily chicken—and a provider of contract manufacturing (maklon/OEM-ODM) services. The company also produces ready-to-eat and frozen food products.",
   "PT Djaja Harapan":
-    "PT Djaja Harapan adalah perusahaan distribusi/ritel di Indonesia untuk sparepart otomatif khususnya bearing. Informasi publik menggambarkan fokus pada pengadaan dan pemasaran berbagai produk kebutuhan.",
+    "PT Djaja Harapan is an Indonesia-based distributor and retailer of automotive spare parts, with a specialization in bearings. Publicly available information indicates a focus on sourcing and marketing a broad range of products.",
   "PT Astra Honda Motor":
-    "PT Astra Honda Motor (AHM) adalah produsen sepeda motor Honda di Indonesia, perusahaan patungan Astra International dan Honda Motor Co., Ltd.",
+    "PT Astra Honda Motor (AHM) is the manufacturer of Honda motorcycles in Indonesia and a joint venture between PT Astra International and Honda Motor Co., Ltd.",
   "PT Aneka Makmur Sejahtera":
-    "PT Aneka Makmur Sejahtera disebut dalam direktori bisnis sebagai entitas perdagangan/pendukung distribusi dengan aktivitas komersial di Indonesia, yang secara garis besar berfokus pada distribusi seperti produk sepeda motor Yamaha dan eskrim Walls di Kalimantan Barat.",
+    "PT Aneka Makmur Sejahtera is cited in business directories as a trading and distribution-support company operating in Indonesia, with activities broadly focused on distributing products including Yamaha motorcycles and Wall’s ice cream in West Borneo.",
   "PD Murah Makmur":
-    "PD Murah Makmur merupakan usaha perdagangan yang melayani distribusi barang khususnya material bahan bangunan di Kota Bogor.",
+    "PD Murah Makmur is a trading company providing distribution services in Bogor, Indonesia, with a core focus on building materials.",
   "Fingerspot":
-    "Fingerspot adalah penyedia solusi absensi dan keamanan biometrik (fingerprint/RFID) untuk bisnis dan organisasi di Indonesia.",
+    "Fingerspot provides time-and-attendance and biometric security solutions (fingerprint/RFID) for businesses and organizations across Indonesia.",
 };
 function resolveCompany(fullText = "") {
   const lower = fullText.toLowerCase();
