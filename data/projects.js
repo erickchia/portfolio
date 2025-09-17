@@ -10,4 +10,9 @@ export const projects = [
      url: "https://script.google.com/macros/s/AKfycbz5Vd-9xEcZB1dMqvQb2AXtTOh6JOEFF3C9pfLfgSqYYWCrL9KmOQPFzz3Z9v3Ho549rA/exec", 
      tags: ["Google App Script","Google Sheets","Sales","Customable"] 
   },
+    { name: "Purchasing Requisition", 
+     description: "Think of this Purchase Requisition as your office wishlist: pick a supplier, choose item specs, enter the quantity, and the smart bits handle the rest—searchable dropdowns, prices and units auto-filled from the supplier catalog, instant totals, and a fresh PR number generated every time you save. With one click you get a clean A4 print preview, and the form resets for your next request. It’s fast, lightweight, and drama-free—fewer typos, smoother approvals, and everything tidy on a single screen.", 
+     url: "https://script.google.com/macros/s/AKfycbwzeQ7Pw-R91Ph90QgNQgWXs3pg0YwKKUiaJjl1nLbzx0RgihNQrizhnBQY2YDOW4hw/exec", 
+     tags: ["Google App Script","Google Sheets","Purchasing","Customable"] 
+  },
 ];
