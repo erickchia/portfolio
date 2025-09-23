@@ -6,7 +6,7 @@ import NumericRail from "./components/NumericRail";
 import ThemeToggle from "./components/ThemeToggle";
 
 export default function Home() {
-  // Scope scroll lock ke halaman ini doang
+  // Lock outer scroll only for this page
   useEffect(() => {
     document.body.classList.add("lock-scroll");
     return () => document.body.classList.remove("lock-scroll");
@@ -61,42 +61,39 @@ export default function Home() {
             </div>
           </section>
 
-          {/* RIGHT: kolom sendiri; dekor tidak bisa nyolong klik */}
-          <aside className="right">
+          {/* RIGHT: own grid column (no overlay). Add data-clean to trigger “no-decor” rules */}
+          <aside className="right" data-clean>
             <div className="rail-ui">
               <NumericRail scrollTargetId="left-scroll" />
             </div>
           </aside>
         </main>
-
-        {/* Top-most click-through shield (blocks rogue overlays from eating clicks) */}
-        <div className="pe-shield" aria-hidden="true" />
       </div>
 
       {/* ===== GLOBAL (scoped via class) ===== */}
       <style jsx global>{`
-        :root { --rail-w: 320px; }
+        /* tweak width/height ratio here */
+        :root { --rail-w: clamp(220px, 22vw, 340px); } /* <— edit this */
+
         html, body, #__next { height: 100%; }
         body.lock-scroll { overflow: hidden; overscroll-behavior: none; }
       `}</style>
 
       {/* ===== LAYOUT & INTERACTION SAFETY ===== */}
       <style jsx>{`
-        /* Viewport wrapper so we don't touch html/body scroll globally */
         .viewport {
           height: 100dvh;
-          overflow: hidden; /* outer page doesn't scroll */
+          overflow: hidden;       /* outer page doesn't scroll */
           position: relative;
         }
         @supports (-webkit-touch-callout: none) {
           .viewport { height: -webkit-fill-available; }
         }
 
-        /* Two-column grid on desktop, single on mobile */
         .layout {
           height: 100%;
           display: grid;
-          grid-template-columns: 1fr; /* mobile */
+          grid-template-columns: 1fr;     /* mobile */
         }
         @media (min-width: 1024px) {
           .layout {
@@ -104,12 +101,9 @@ export default function Home() {
           }
         }
 
-        /* Allow the scroll area to actually scroll */
         .layout, .left, .container { min-height: 0; min-width: 0; }
 
-        /* Left column scroll */
         .left {
-          position: relative;
           z-index: 2;
           height: 100%;
           overflow-y: auto !important;
@@ -119,7 +113,7 @@ export default function Home() {
         }
         .left::-webkit-scrollbar { width: 0; height: 0; }
 
-        /* Right column: sticky on desktop; can't steal clicks */
+        /* Right column: sticky on desktop, hidden on mobile */
         .right { display: none; }
         @media (min-width: 1024px) {
           .right {
@@ -129,32 +123,23 @@ export default function Home() {
             height: 100dvh;
             overflow: hidden;
             z-index: 1;
-            /* kill all pointer events in the right column by default */
-            pointer-events: none;
             background: var(--bg, #f3f4f6);
           }
         }
 
-        /* Re-enable interaction ONLY for the actual rail UI */
-        .rail-ui, .rail-ui * { pointer-events: auto; position: relative; z-index: 2; }
-
-        /* Nuke rogue decorative layers (canvas/svg/div) inside the right column */
-        .right :is(canvas, svg, video, picture, img, .decor, .numbers, .bg, .noise, [data-decor], [data-bg="numbers"]) {
-          pointer-events: none !important;
-          opacity: 0 !important;
-        }
-        /* If they use fixed/absolute backgrounds, disable them too */
-        .right [style*="position:fixed"],
-        .right [style*="position: absolute"] {
+        /* Keep only the rail UI; nuke any decorative layers inside .right */
+        /* 1) hide everything under .right ... */
+        :global(.right[data-clean] *){
+          display: none !important;
           pointer-events: none !important;
         }
-
-        /* Click-through shield: sits ABOVE everything but lets events pass */
-        .pe-shield {
-          position: fixed;
-          inset: 0;
-          z-index: 999999;   /* highest */
-          pointer-events: none; /* events go to real content below */
+        /* 2) ...then re-enable ONLY the rail-ui subtree */
+        :global(.right[data-clean] .rail-ui),
+        :global(.right[data-clean] .rail-ui *){
+          display: revert !important;      /* bring back natural display */
+          pointer-events: auto !important; /* interactive again */
+          position: relative;
+          z-index: 2;
         }
       `}</style>
     </>
