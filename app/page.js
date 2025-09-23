@@ -6,7 +6,7 @@ import NumericRail from "./components/NumericRail";
 import ThemeToggle from "./components/ThemeToggle";
 
 export default function Home() {
-  // Scope scroll lock to this page only
+  // Scope scroll lock ke halaman ini doang
   useEffect(() => {
     document.body.classList.add("lock-scroll");
     return () => document.body.classList.remove("lock-scroll");
@@ -61,9 +61,11 @@ export default function Home() {
             </div>
           </section>
 
-          {/* RIGHT: its own column; no overlay, no click stealing */}
-          <aside className="right">
-            <NumericRail scrollTargetId="left-scroll" />
+          {/* RIGHT: kolom sendiri; overlay dekor dimatikan */}
+          <aside className="right" data-no-decor>
+            <div className="rail-ui">
+              <NumericRail scrollTargetId="left-scroll" />
+            </div>
           </aside>
         </main>
       </div>
@@ -77,16 +79,16 @@ export default function Home() {
 
       {/* ===== LAYOUT & SCROLL SAFETY ===== */}
       <style jsx>{`
-        /* Viewport wrapper so we don't have to globally lock <html>/<body> */
+        /* Viewport wrapper supaya nggak perlu kunci html/body */
         .viewport {
           height: 100dvh;
-          overflow: hidden; /* outer page doesn't scroll */
+          overflow: hidden; /* outer page tidak scroll */
         }
         @supports (-webkit-touch-callout: none) {
           .viewport { height: -webkit-fill-available; }
         }
 
-        /* Two-column grid on desktop, single on mobile */
+        /* Grid: mobile 1 kolom, desktop 2 kolom */
         .layout {
           height: 100%;
           display: grid;
@@ -98,31 +100,65 @@ export default function Home() {
           }
         }
 
-        /* Critical: let children shrink so the scroll area actually scrolls */
+        /* Biar child bisa shrink -> area scroll jalan */
         .layout, .left, .container { min-height: 0; min-width: 0; }
 
-        /* Scrollable left column */
+        /* Left column scroll */
         .left {
           height: 100%;
           overflow-y: auto !important;
           -webkit-overflow-scrolling: touch;
           touch-action: pan-y;
           scrollbar-width: none;
+          position: relative;
+          z-index: 2; /* pastikan selalu di atas dekor */
         }
         .left::-webkit-scrollbar { width: 0; height: 0; }
 
-        /* Right column lives in its own grid cell (no overlay).
-           Sticky keeps it visible while left scrolls. */
-        .right {
-          display: none; /* hide on mobile */
-        }
+        /* Right column: sticky di desktop, hidden di mobile */
+        .right { display: none; }
         @media (min-width: 1024px) {
           .right {
             display: block;
             position: sticky;
             top: 0;
             height: 100dvh;
+            overflow: hidden;          /* clip apapun yang coba keluar */
+            isolation: isolate;        /* stack context baru */
+            position: sticky;
+            background: var(--bg, #f3f4f6);
           }
+        }
+
+        /* ====== BUANG OVERLAY DEKOR ======
+           - Tutup semua dekor pakai layer polos
+           - Rail UI tetap interaktif di atasnya
+        */
+        .right[data-no-decor]::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          background: var(--bg, #f3f4f6); /* plain */
+          z-index: 1;
+          pointer-events: none;
+        }
+        .rail-ui { position: relative; z-index: 2; }
+
+        /* Matikan elemen dekor umum di dalam NumericRail */
+        .right[data-no-decor] :global(.decor),
+        .right[data-no-decor] :global(.numbers),
+        .right[data-no-decor] :global(.bg),
+        .right[data-no-decor] :global([data-decor]),
+        .right[data-no-decor] :global([data-bg="numbers"]),
+        .right[data-no-decor] :global(.noise) {
+          display: none !important;
+          pointer-events: none !important;
+        }
+        /* Kalau dekor pakai <canvas> absolut/fixed, nonaktifkan interaksinya */
+        .right[data-no-decor] :global(canvas[style*="position: absolute"]),
+        .right[data-no-decor] :global(canvas[style*="position:fixed"]) {
+          pointer-events: none !important;
+          opacity: 0 !important;
         }
       `}</style>
     </>
