@@ -163,6 +163,11 @@ export default function Home() {
     .chips { display: none; }
 
     .btn { border: 1px solid #e5e7eb; border-radius: 999px; padding: 8px 12px; font-size: 12px; }
+
+.card{ background:var(--card); }
+.chip{ background:var(--card); border:1px solid var(--ring); } /* simple & theme-safe */
+.right{ background:var(--rail-grad); } /* pakai var grad */
+
   }
 `}</style>
     </>
