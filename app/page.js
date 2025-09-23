@@ -3,6 +3,8 @@
 import { projects } from "../data/projects";
 import NumericRail from "./components/NumericRail";
 import ThemeToggle from "./components/ThemeToggle";
+import ReviewsStrip from "./components/ReviewsStrip";
+
 
 export default function Home() {
   return (
@@ -27,6 +29,8 @@ export default function Home() {
                 <a href="mailto:erickchia2@gmail.com" className="btn btn--ghost">Email</a>
               </div>
             </header>
+
+                  <ReviewsStrip />
 
             <section>
               <h2 className="section-title">Projects</h2>
