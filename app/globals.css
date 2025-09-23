@@ -179,3 +179,15 @@ html,body{
   .btn{ padding: 8px 12px; font-size: 12px; border-radius: 12px; }
 }
 
+/* Force the page background to follow --bg, even if inline styles exist */
+html, body {
+  background: none !important;
+  background-color: var(--bg) !important;
+}
+
+/* Make sure Next’s root also inherits the theme bg */
+#__next, .layout {
+  background-color: var(--bg);
+}
+
+
