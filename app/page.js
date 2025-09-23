@@ -61,13 +61,16 @@ export default function Home() {
             </div>
           </section>
 
-          {/* RIGHT: kolom sendiri; overlay dekor dimatikan */}
-          <aside className="right" data-no-decor>
+          {/* RIGHT: kolom sendiri; dekor tidak bisa nyolong klik */}
+          <aside className="right">
             <div className="rail-ui">
               <NumericRail scrollTargetId="left-scroll" />
             </div>
           </aside>
         </main>
+
+        {/* Top-most click-through shield (blocks rogue overlays from eating clicks) */}
+        <div className="pe-shield" aria-hidden="true" />
       </div>
 
       {/* ===== GLOBAL (scoped via class) ===== */}
@@ -77,18 +80,19 @@ export default function Home() {
         body.lock-scroll { overflow: hidden; overscroll-behavior: none; }
       `}</style>
 
-      {/* ===== LAYOUT & SCROLL SAFETY ===== */}
+      {/* ===== LAYOUT & INTERACTION SAFETY ===== */}
       <style jsx>{`
-        /* Viewport wrapper supaya nggak perlu kunci html/body */
+        /* Viewport wrapper so we don't touch html/body scroll globally */
         .viewport {
           height: 100dvh;
-          overflow: hidden; /* outer page tidak scroll */
+          overflow: hidden; /* outer page doesn't scroll */
+          position: relative;
         }
         @supports (-webkit-touch-callout: none) {
           .viewport { height: -webkit-fill-available; }
         }
 
-        /* Grid: mobile 1 kolom, desktop 2 kolom */
+        /* Two-column grid on desktop, single on mobile */
         .layout {
           height: 100%;
           display: grid;
@@ -100,22 +104,22 @@ export default function Home() {
           }
         }
 
-        /* Biar child bisa shrink -> area scroll jalan */
+        /* Allow the scroll area to actually scroll */
         .layout, .left, .container { min-height: 0; min-width: 0; }
 
         /* Left column scroll */
         .left {
+          position: relative;
+          z-index: 2;
           height: 100%;
           overflow-y: auto !important;
           -webkit-overflow-scrolling: touch;
           touch-action: pan-y;
           scrollbar-width: none;
-          position: relative;
-          z-index: 2; /* pastikan selalu di atas dekor */
         }
         .left::-webkit-scrollbar { width: 0; height: 0; }
 
-        /* Right column: sticky di desktop, hidden di mobile */
+        /* Right column: sticky on desktop; can't steal clicks */
         .right { display: none; }
         @media (min-width: 1024px) {
           .right {
@@ -123,42 +127,34 @@ export default function Home() {
             position: sticky;
             top: 0;
             height: 100dvh;
-            overflow: hidden;          /* clip apapun yang coba keluar */
-            isolation: isolate;        /* stack context baru */
-            position: sticky;
+            overflow: hidden;
+            z-index: 1;
+            /* kill all pointer events in the right column by default */
+            pointer-events: none;
             background: var(--bg, #f3f4f6);
           }
         }
 
-        /* ====== BUANG OVERLAY DEKOR ======
-           - Tutup semua dekor pakai layer polos
-           - Rail UI tetap interaktif di atasnya
-        */
-        .right[data-no-decor]::before {
-          content: "";
-          position: absolute;
-          inset: 0;
-          background: var(--bg, #f3f4f6); /* plain */
-          z-index: 1;
-          pointer-events: none;
-        }
-        .rail-ui { position: relative; z-index: 2; }
+        /* Re-enable interaction ONLY for the actual rail UI */
+        .rail-ui, .rail-ui * { pointer-events: auto; position: relative; z-index: 2; }
 
-        /* Matikan elemen dekor umum di dalam NumericRail */
-        .right[data-no-decor] :global(.decor),
-        .right[data-no-decor] :global(.numbers),
-        .right[data-no-decor] :global(.bg),
-        .right[data-no-decor] :global([data-decor]),
-        .right[data-no-decor] :global([data-bg="numbers"]),
-        .right[data-no-decor] :global(.noise) {
-          display: none !important;
-          pointer-events: none !important;
-        }
-        /* Kalau dekor pakai <canvas> absolut/fixed, nonaktifkan interaksinya */
-        .right[data-no-decor] :global(canvas[style*="position: absolute"]),
-        .right[data-no-decor] :global(canvas[style*="position:fixed"]) {
+        /* Nuke rogue decorative layers (canvas/svg/div) inside the right column */
+        .right :is(canvas, svg, video, picture, img, .decor, .numbers, .bg, .noise, [data-decor], [data-bg="numbers"]) {
           pointer-events: none !important;
           opacity: 0 !important;
+        }
+        /* If they use fixed/absolute backgrounds, disable them too */
+        .right [style*="position:fixed"],
+        .right [style*="position: absolute"] {
+          pointer-events: none !important;
+        }
+
+        /* Click-through shield: sits ABOVE everything but lets events pass */
+        .pe-shield {
+          position: fixed;
+          inset: 0;
+          z-index: 999999;   /* highest */
+          pointer-events: none; /* events go to real content below */
         }
       `}</style>
     </>
