@@ -1,16 +1,22 @@
 'use client';
 
+import { useEffect } from "react";
 import { projects } from "../data/projects";
 import NumericRail from "./components/NumericRail";
 import ThemeToggle from "./components/ThemeToggle";
 
 export default function Home() {
+  // Scope the body scroll lock to THIS page
+  useEffect(() => {
+    document.body.classList.add("lock-scroll");
+    return () => document.body.classList.remove("lock-scroll");
+  }, []);
+
   return (
     <>
       <main className="layout">
         <section className="left" id="left-scroll">
           <div className="container">
-
             {/* Toggle tema di pojok kanan atas area 2/3 */}
             <div className="topbar">
               <ThemeToggle />
@@ -64,34 +70,58 @@ export default function Home() {
         </section>
       </main>
 
-      {/* fixed right rail – biarin */}
+      {/* fixed right rail – biarin di desktop */}
       <aside className="right">
         <NumericRail scrollTargetId="left-scroll" />
       </aside>
 
-{/* ===== Global: tetap tanpa scrollbar di dokumen ===== */}
-<style jsx global>{`
-  html, body {
-    height: 100%;
-    overflow: hidden;            /* outer page tidak scroll */
-    overscroll-behavior: none;
-  }
-  /* (opsional) sembunyikan scrollbar outer kalau ada */
-  html::-webkit-scrollbar,
-  body::-webkit-scrollbar { display: none; }
-  html, body { scrollbar-width: none; }
-`}</style>
+      {/* ===== GLOBAL (scoped via class) ===== */}
+      <style jsx global>{`
+        html, body, #__next { height: 100%; }
+        body.lock-scroll {
+          overflow: hidden;              /* lock outer page only here */
+          overscroll-behavior: none;
+        }
+        /* Optional: hide outer scrollbar if it appears */
+        body.lock-scroll::-webkit-scrollbar { display: none; }
+        body.lock-scroll { scrollbar-width: none; }
+      `}</style>
 
-{/* ===== Kolom kiri: boleh scroll, scrollbar disembunyikan ===== */}
-<style jsx>{`
-  .left {
-    overflow-y: auto !important;          /* aktifkan lagi scroll di kolom kiri */
-    -webkit-overflow-scrolling: touch;    /* smooth di iOS */
-  }
-  .left::-webkit-scrollbar { width: 0; height: 0; }
-  .left { scrollbar-width: none; }
-`}</style>
+      {/* ===== LAYOUT & MOBILE SCROLL FIX ===== */}
+      <style jsx>{`
+        .layout {
+          height: 100dvh;                 /* reliable viewport height on mobile */
+          display: grid;
+          grid-template-columns: 1fr;     /* stack on mobile */
+        }
+        /* iOS Safari fallback for dynamic address bar */
+        @supports (-webkit-touch-callout: none) {
+          .layout { height: -webkit-fill-available; }
+        }
 
+        /* Allow scroll child to size properly inside grid */
+        .layout, .left, .container { min-height: 0; min-width: 0; }
+
+        /* Scrollable column */
+        .left {
+          height: 100%;
+          overflow-y: auto !important;
+          -webkit-overflow-scrolling: touch;
+          touch-action: pan-y;            /* make vertical swipes scroll */
+          scrollbar-width: none;
+        }
+        .left::-webkit-scrollbar { width: 0; height: 0; }
+
+        /* Right rail fixed on desktop, hidden on mobile to avoid stealing touches */
+        .right {
+          position: fixed;
+          right: 0; top: 0; bottom: 0;
+          width: 320px;
+        }
+        @media (max-width: 1023px) {
+          .right { display: none; }
+        }
+      `}</style>
     </>
   );
 }
